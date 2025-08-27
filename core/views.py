@@ -36,14 +36,22 @@ def api_info(request):
 
 
 def home_page(request):
-    # template_name = 'core/home.html'
-    template_name = 'gospelux_landing.html'
+    template_name = 'core/home.html'
+    # template_name = 'gospelux_landing.html'
     
     return render(request, template_name)
 
 def contact_page(request):
-    # template_name = 'core/contact.html'
-    template_name = 'bible_music_app_landing.html'
+    template_name = 'core/contact.html'
+    # template_name = 'bible_music_app_landing.html'
+    
+    if request.POST:
+        pass
+    return render(request, template_name)
+
+def about_page(request):
+    template_name = 'core/about.html'
+    # template_name = 'bible_music_app_landing.html'
     
     if request.POST:
         pass

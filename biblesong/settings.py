@@ -196,8 +196,8 @@ CELERY_TIMEZONE = TIME_ZONE
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -236,7 +236,7 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Welcome to Gospelux Portal",
 
     # Copyright on the footer
-    "copyright": "Your Company Ltd",
+    "copyright": "Gospelux",
 }
 
 JAZZMIN_UI_TWEAKS = {

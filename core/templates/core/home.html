@@ -1,117 +1,255 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>BibleSong AI — Transform Scripture into Music</title>
-	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-	<style>
-		:root {
-			--primary: #4b2e83;
-			--accent: #8ec5fc;
-			--muted: #6b7280;
-			--card: #ffffff;
-			--bg: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
-		}
+{% block content %}
+	<!-- Navigation (included from base.html) -->
 
-		* { box-sizing: border-box; }
-		body { font-family: 'Poppins', sans-serif; margin: 0; color: #1f2937; background: var(--bg); }
+	<!-- Hero Section -->
+    <section id="home" class="hero layout-1">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="hero-title">Transform Your Worship with AI-Powered Music</h1>
+                    <p class="hero-subtitle">Revolutionize your ministry with intelligent Bible music generation</p>
+                    <p class="hero-description">Gospelux combines cutting-edge AI technology with sacred scripture to create personalized worship experiences. Generate dynamic music from any Bible verse, customize for your congregation, and elevate your spiritual journey.</p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="#demo" class="btn-primary-custom">
+                            <i class="fas fa-play me-2"></i>Try Demo
+                        </a>
+                        <a href="#features" class="btn-secondary-custom">
+                            <i class="fas fa-star me-2"></i>Explore Features
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="glass-card p-4 mt-5 mt-lg-0">
+                        <div style="height: 400px; background: linear-gradient(135deg, #1a1f3a 0%, #2a2f4a 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                            <div class="text-center">
+                                <i class="fas fa-music" style="font-size: 4rem; color: #4A90E2; margin-bottom: 1rem;"></i>
+                                <h4>AI-Generated Worship</h4>
+                                <p>Transform scripture into melody</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-		.site-wrap { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title animate-on-scroll">Powerful Features for Modern Ministry</h2>
+                <p class="section-subtitle animate-on-scroll">Discover how Gospelux transforms your worship experience</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 text-center animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h4 class="feature-title">AI Music Generation</h4>
+                        <p class="feature-description">Transform any Bible verse into beautiful, contextually-aware worship music using advanced AI algorithms.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 text-center animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <h4 class="feature-title">Custom Arrangements</h4>
+                        <p class="feature-description">Personalize music style, tempo, and instrumentation to match your congregation's preferences and worship style.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 text-center animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h4 class="feature-title">Collaboration Tools</h4>
+                        <p class="feature-description">Share compositions with your worship team, collaborate in real-time, and build your ministry's music library.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 text-center animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h4 class="feature-title">Mobile-First Design</h4>
+                        <p class="feature-description">Access your music library anywhere, anytime. Perfect for rehearsals, services, and on-the-go inspiration.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 text-center animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4 class="feature-title">Analytics Dashboard</h4>
+                        <p class="feature-description">Track engagement, measure impact, and optimize your worship music strategy with detailed insights.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 text-center animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-cloud"></i>
+                        </div>
+                        <h4 class="feature-title">Cloud Integration</h4>
+                        <p class="feature-description">Seamless syncing across all devices, automatic backups, and secure cloud storage for your worship library.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-		.nav { display:flex; justify-content:space-between; align-items:center; gap:20px; }
-		.brand { font-weight:700; color: var(--primary); font-size:1.25rem; }
+    <!-- Demo Section -->
+    <section id="demo" class="demo">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title animate-on-scroll">Experience Gospelux in Action</h2>
+                <p class="section-subtitle animate-on-scroll">See how pastors and worship leaders are transforming their ministries</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="demo-mockup animate-on-scroll">
+                        <div class="mockup-screen">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <h5><i class="fas fa-bible me-2 text-warning"></i>Scripture Input</h5>
+                                    <div class="bg-dark p-3 rounded mb-3">
+                                        <small class="text-muted">John 3:16</small>
+                                        <p class="mb-0">"For God so loved the world..."</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h5><i class="fas fa-sliders-h me-2 text-primary"></i>AI Processing</h5>
+                                    <div class="bg-dark p-3 rounded mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                                            <small>Generating music...</small>
+                                        </div>
+                                        <div class="progress mt-2" style="height: 4px;">
+                                            <div class="progress-bar bg-primary" style="width: 75%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h5><i class="fas fa-music me-2 text-success"></i>Generated Music</h5>
+                                    <div class="bg-dark p-3 rounded mb-3">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <span>Amazing_Love.mp3</span>
+                                            <button class="btn btn-success btn-sm">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <h4>Transform Scripture into Song in Seconds</h4>
+                            <p class="text-muted">Watch as our AI analyzes biblical text and creates contextually-aware worship music</p>
+                            <a href="#pricing" class="btn-primary-custom">
+                                <i class="fas fa-rocket me-2"></i>Start Creating
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-		.hero { text-align:center; padding:80px 20px 60px; }
-		.hero h1 { font-size:3rem; margin:0 0 16px; color:var(--primary); }
-		.hero p { color:var(--muted); font-size:1.125rem; max-width:760px; margin:0 auto 28px; }
+    <!-- Download Section -->
+    <section id="download" class="py-5" style="background: rgba(0, 0, 0, 0.3);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h2 class="mb-3">Download Gospelux Today</h2>
+                    <p class="lead mb-4">Version 2.1 - Now with enhanced AI capabilities and improved user interface</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Cross-platform compatibility</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Offline music generation</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Advanced customization</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Team collaboration features</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Cloud backup & sync</li>
+                                <li><i class="fas fa-check text-success me-2"></i>24/7 customer support</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div class="glass-card p-4">
+                        <h4 class="mb-3">Ready to Transform Your Ministry?</h4>
+                        <a href="#" class="btn-secondary-custom d-block mb-3">
+                            <i class="fab fa-apple me-2"></i>Download for iOS
+                        </a>
+                        <a href="#" class="btn-primary-custom d-block">
+                            <i class="fab fa-android me-2"></i>Download for Android
+                        </a>
+                        <small class="text-muted mt-2 d-block">Free 14-day trial included</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-		.cta-group { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
-		.btn { padding:14px 28px; border-radius:999px; text-decoration:none; font-weight:600; }
-		.btn-primary { background:var(--primary); color:#fff; box-shadow:0 8px 30px rgba(75,46,131,0.12); }
-		.btn-ghost { background:rgba(255,255,255,0.95); color:var(--primary); }
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title animate-on-scroll">Choose Your Ministry Plan</h2>
+                <p class="section-subtitle animate-on-scroll">Flexible pricing designed for churches of all sizes</p>
+            </div>
+            <div class="row justify-content-center g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card pricing-card p-4 h-100 text-center animate-on-scroll">
+                        <h3 class="mb-4">Starter</h3>
+                        <div class="price mb-4">$19<small class="text-muted fs-6">/month</small></div>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>50 AI generations/month</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Basic customization</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Mobile app access</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Email support</li>
+                            <li class="mb-2"><i class="fas fa-times text-muted me-2"></i>Team collaboration</li>
+                        </ul>
+                        <a href="#" class="btn-primary-custom">Get Started</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card pricing-card featured p-4 h-100 text-center animate-on-scroll">
+                        <h3 class="mb-4">Professional</h3>
+                        <div class="price mb-4">$49<small class="text-muted fs-6">/month</small></div>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited AI generations</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Advanced customization</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Team collaboration (5 users)</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Analytics dashboard</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Priority support</li>
+                        </ul>
+                        <a href="#" class="btn-secondary-custom">Most Popular</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card pricing-card p-4 h-100 text-center animate-on-scroll">
+                        <h3 class="mb-4">Enterprise</h3>
+                        <div class="price mb-4">$99<small class="text-muted fs-6">/month</small></div>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Everything in Professional</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited team members</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Custom AI training</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>API access</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Dedicated support</li>
+                        </ul>
+                        <a href="#" class="btn-primary-custom">Contact Sales</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-		.card-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:24px; margin-top:40px; }
-		.card { background:var(--card); padding:22px; border-radius:12px; box-shadow:0 10px 30px rgba(16,24,40,0.06); }
-		.card h3 { margin:8px 0; color:var(--primary); }
-		.card p { margin:0; color:var(--muted); }
-
-		.how { background:rgba(255,255,255,0.9); margin:40px 0 24px; padding:48px 20px; border-radius:14px; text-align:center; }
-		.steps { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-top:26px; }
-		.step { width:220px; }
-		.step .num { width:44px;height:44px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-weight:700; }
-		.footer { text-align:center; padding:36px 20px; color:var(--muted); }
-
-		@media (max-width:720px){ .hero h1 { font-size:2rem } .site-wrap { padding:20px } }
-	</style>
-</head>
-<body>
-	<div class="site-wrap">
-		<header class="nav">
-			<div class="brand">BibleSong AI</div>
-			<nav>
-				<a href="{% url 'home' %}" style="margin-right:18px; color:#fff; text-decoration:none; font-weight:600;">Home</a>
-				<a href="{% url 'contact_page' %}" style="color:#fff; text-decoration:none; font-weight:600;">Contact</a>
-			</nav>
-		</header>
-
-		<main>
-			<section class="hero">
-				<h1>Turn Scripture into Song — Instantly</h1>
-				<p>Create worshipful melodies from Bible verses using intelligent music generation. Personalize tempo, style and instrumentation — then share or download your song.</p>
-
-				<div class="cta-group">
-					<a class="btn btn-primary" href="{% url 'register' %}">Get Started — Free</a>
-					<a class="btn btn-ghost" href="#how">How it works</a>
-				</div>
-
-				<div class="card-row" style="margin-top:48px;">
-					<div class="card">
-						<div style="font-size:28px;">🎵</div>
-						<h3>AI Song Generation</h3>
-						<p>Generate unique arrangements from any verse — vocals, chords and instrumentation included.</p>
-					</div>
-					<div class="card">
-						<div style="font-size:28px;">📖</div>
-						<h3>Scripture Library</h3>
-						<p>Find passages by book, theme or keyword. Built-in history and favorites.</p>
-					</div>
-					<div class="card">
-						<div style="font-size:28px;">🌐</div>
-						<h3>Share & Collaborate</h3>
-						<p>Publish songs to the community, collaborate on arrangements and get feedback.</p>
-					</div>
-				</div>
-			</section>
-
-			<section id="how" class="how">
-				<h2>How it works</h2>
-				<p style="color:var(--muted); max-width:800px; margin:8px auto 0;">A simple 3-step flow that turns scripture into worship music — no experience required.</p>
-				<div class="steps">
-					<div class="step">
-						<div class="num">1</div>
-						<h4>Pick a Verse</h4>
-						<p style="color:var(--muted);">Search or paste the passage you want to set to music.</p>
-					</div>
-					<div class="step">
-						<div class="num">2</div>
-						<h4>Choose a Style</h4>
-						<p style="color:var(--muted);">Select genre, tempo and mood. Preview different arrangements in seconds.</p>
-					</div>
-					<div class="step">
-						<div class="num">3</div>
-						<h4>Generate & Share</h4>
-						<p style="color:var(--muted);">Download audio, export sheet music, or publish to the community.</p>
-					</div>
-				</div>
-			</section>
-		</main>
-
-		<footer class="footer">
-			<p>© {{ now|date:"Y" }} BibleSong AI • Made for worship and devotion</p>
-			<div style="margin-top:12px;"><a class="btn btn-primary" href="{% url 'register' %}">Create Your First Song</a></div>
-		</footer>
-	</div>
-</body>
-</html>
+{% endblock content %}
