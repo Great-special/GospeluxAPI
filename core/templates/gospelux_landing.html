@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gospelux - AI-Powered Bible Music Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f3a 50%, #2a2f4a 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Particle Background */
+        .particle-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(100, 149, 237, 0.3);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Navigation */
+        .navbar {
+            background: rgba(10, 14, 26, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #4A90E2 0%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .navbar-nav .nav-link {
+            color: #ffffff;
+            font-weight: 500;
+            margin: 0 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .navbar-nav .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(135deg, #4A90E2, #FFD700);
+            transition: width 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%234A90E2;stop-opacity:0.1" /><stop offset="100%" style="stop-color:%23FFD700;stop-opacity:0.1" /></linearGradient></defs><rect width="1000" height="1000" fill="url(%23grad)"/><circle cx="200" cy="200" r="100" fill="rgba(74,144,226,0.1)"/><circle cx="800" cy="300" r="150" fill="rgba(255,215,0,0.1)"/><circle cx="500" cy="700" r="120" fill="rgba(74,144,226,0.1)"/></svg>') center/cover;
+            z-index: -1;
+        }
+
+        .hero-title {
+            font-size: 4.5rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #4A90E2 0%, #ffffff 50%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        .hero-description {
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+            opacity: 0.8;
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #4A90E2 0%, #6BB6FF 100%);
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(74, 144, 226, 0.4);
+            background: linear-gradient(135deg, #6BB6FF 0%, #4A90E2 100%);
+            color: white;
+        }
+
+        .btn-secondary-custom {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            color: #0a0e1a;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-secondary-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.4);
+            background: linear-gradient(135deg, #FFA500 0%, #FFD700 100%);
+            color: #0a0e1a;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 0;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #4A90E2 0%, #6BB6FF 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover .feature-icon {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+
+        .feature-description {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        /* Demo Section */
+        .demo {
+            padding: 6rem 0;
+            background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%);
+        }
+
+        .demo-mockup {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .demo-mockup:hover {
+            transform: scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .mockup-screen {
+            background: linear-gradient(135deg, #1a1f3a 0%, #2a2f4a 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 6rem 0;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-card {
+            position: relative;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card.featured {
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #0a0e1a;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .price {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #4A90E2 0%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Contact Form */
+        .contact {
+            padding: 6rem 0;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+            color: #ffffff;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 3rem 0 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .hero-description {
+                font-size: 1rem;
+            }
+            
+            .pricing-card.featured {
+                transform: none;
+                margin-top: 2rem;
+            }
+        }
+
+        /* Animation delays */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.6s ease;
+        }
+
+        .animate-on-scroll.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Section titles */
+        .section-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #4A90E2 0%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.8;
+            margin-bottom: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Background -->
+    <div class="particle-bg" id="particles"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#home">
+                <i class="fas fa-music me-2"></i>Gospelux
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                    <li class="nav-item ms-3">
+                        <a href="#download" class="btn-primary-custom">Download Now</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="hero-title">Transform Your Worship with AI-Powered Music</h1>
+                    <p class="hero-subtitle">Revolutionize your ministry with intelligent Bible music generation</p>
+                    <p class="hero-description">Gospelux combines cutting-edge AI technology with sacred scripture to create personalized worship experiences. Generate dynamic music from any Bible verse, customize for your congregation, and elevate your spiritual journey.</p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="#demo" class="btn-primary-custom">
+                            <i class="fas fa-play me-2"></i>Try Demo
+                        </a>
+                        <a href="#features" class="btn-secondary-custom">
+                            <i class="fas fa-star me-2"></i>Explore Features
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="glass-card p-4 mt-5 mt-lg-0">
+                        <div style="height: 400px; background: linear-gradient(135deg, #1a1f3a 0%, #2a2f4a 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                            <div class="text-center">
+                                <i class="fas fa-music" style="font-size: 4rem; color: #4A90E2; margin-bottom: 1rem;"></i>
+                                <h4>AI-Generated Worship</h4>
+                                <p>Transform scripture into melody</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title animate-on-scroll">Powerful Features for Modern Ministry</h2>
+                <p class="section-subtitle animate-on-scroll">Discover how Gospelux transforms your worship experience</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 text-center animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h4 class="feature-title">AI Music Generation</h4>
+                        <p class="feature-description">Transform any Bible verse into beautiful, contextually-aware worship music using advanced AI algorithms.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 text-center animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <h4 class="feature-title">Custom Arrangements</h4>
+                        <p class="feature-description">Personalize music style, tempo, and instrumentation to match your congregation's preferences and worship style.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 text-center animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h4 class="feature-title">Collaboration Tools</h4>
+                        <p class="feature-description">Share compositions with your worship team, collaborate in real-time, and build your ministry's music library.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 text-center animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h4 class="feature-title">Mobile-First Design</h4>
+                        <p class="feature-description">Access your music library anywhere, anytime. Perfect for rehearsals, services, and on-the-go inspiration.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 text-center animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4 class="feature-title">Analytics Dashboard</h4>
+                        <p class="feature-description">Track engagement, measure impact, and optimize your worship music strategy with detailed insights.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 text-center animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-cloud"></i>
+                        </div>
+                        <h4 class="feature-title">Cloud Integration</h4>
+                        <p class="feature-description">Seamless syncing across all devices, automatic backups, and secure cloud storage for your worship library.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="demo">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title animate-on-scroll">Experience Gospelux in Action</h2>
+                <p class="section-subtitle animate-on-scroll">See how pastors and worship leaders are transforming their ministries</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="demo-mockup animate-on-scroll">
+                        <div class="mockup-screen">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <h5><i class="fas fa-bible me-2 text-warning"></i>Scripture Input</h5>
+                                    <div class="bg-dark p-3 rounded mb-3">
+                                        <small class="text-muted">John 3:16</small>
+                                        <p class="mb-0">"For God so loved the world..."</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h5><i class="fas fa-sliders-h me-2 text-primary"></i>AI Processing</h5>
+                                    <div class="bg-dark p-3 rounded mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                                            <small>Generating music...</small>
+                                        </div>
+                                        <div class="progress mt-2" style="height: 4px;">
+                                            <div class="progress-bar bg-primary" style="width: 75%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h5><i class="fas fa-music me-2 text-success"></i>Generated Music</h5>
+                                    <div class="bg-dark p-3 rounded mb-3">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <span>Amazing_Love.mp3</span>
+                                            <button class="btn btn-success btn-sm">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <h4>Transform Scripture into Song in Seconds</h4>
+                            <p class="text-muted">Watch as our AI analyzes biblical text and creates contextually-aware worship music</p>
+                            <a href="#pricing" class="btn-primary-custom">
+                                <i class="fas fa-rocket me-2"></i>Start Creating
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="py-5" style="background: rgba(0, 0, 0, 0.3);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h2 class="mb-3">Download Gospelux Today</h2>
+                    <p class="lead mb-4">Version 2.1 - Now with enhanced AI capabilities and improved user interface</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Cross-platform compatibility</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Offline music generation</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Advanced customization</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Team collaboration features</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Cloud backup & sync</li>
+                                <li><i class="fas fa-check text-success me-2"></i>24/7 customer support</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div class="glass-card p-4">
+                        <h4 class="mb-3">Ready to Transform Your Ministry?</h4>
+                        <a href="#" class="btn-secondary-custom d-block mb-3">
+                            <i class="fab fa-apple me-2"></i>Download for iOS
+                        </a>
+                        <a href="#" class="btn-primary-custom d-block">
+                            <i class="fab fa-android me-2"></i>Download for Android
+                        </a>
+                        <small class="text-muted mt-2 d-block">Free 14-day trial included</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title animate-on-scroll">Choose Your Ministry Plan</h2>
+                <p class="section-subtitle animate-on-scroll">Flexible pricing designed for churches of all sizes</p>
+            </div>
+            <div class="row justify-content-center g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card pricing-card p-4 h-100 text-center animate-on-scroll">
+                        <h3 class="mb-4">Starter</h3>
+                        <div class="price mb-4">$19<small class="text-muted fs-6">/month</small></div>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>50 AI generations/month</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Basic customization</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Mobile app access</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Email support</li>
+                            <li class="mb-2"><i class="fas fa-times text-muted me-2"></i>Team collaboration</li>
+                        </ul>
+                        <a href="#" class="btn-primary-custom">Get Started</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card pricing-card featured p-4 h-100 text-center animate-on-scroll">
+                        <h3 class="mb-4">Professional</h3>
+                        <div class="price mb-4">$49<small class="text-muted fs-6">/month</small></div>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited AI generations</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Advanced customization</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Team collaboration (5 users)</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Analytics dashboard</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Priority support</li>
+                        </ul>
+                        <a href="#" class="btn-secondary-custom">Most Popular</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card pricing-card p-4 h-100 text-center animate-on-scroll">
+                        <h3 class="mb-4">Enterprise</h3>
+                        <div class="price mb-4">$99<small class="text-muted fs-6">/month</small></div>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Everything in Professional</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited team members</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Custom AI training</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>API access</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Dedicated support</li>
+                        </ul>
+                        <a href="#" class="btn-primary-custom">Contact Sales</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title animate-on-scroll">Get in Touch</h2>
+                <p class="section-subtitle animate-on-scroll">Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="glass-card p-5 animate-on-scroll">
+                        <form id="contactForm" novalidate>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="firstName" class="form-label">First Name *</label>
+                                    <input type="text" class="form-control" id="firstName" placeholder="Enter your first name" required>
+                                    <div class="invalid-feedback">Please provide a valid first name.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="lastName" class="form-label">Last Name *</label>
+                                    <input type="text" class="form-control" id="lastName" placeholder="Enter your last name" required>
+                                    <div class="invalid-feedback">Please provide a valid last name.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+                                    <div class="invalid-feedback">Please provide a valid email address.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="church" class="form-label">Church/Organization</label>
+                                    <input type="text" class="form-control" id="church" placeholder="Your church or organization">
+                                </div>
+                                <div class="col-12">
+                                    <label for="subject" class="form-label">Subject *</label>
+                                    <select class="form-control" id="subject" required>
+                                        <option value="">Select a subject</option>
+                                        <option value="general">General Inquiry</option>
+                                        <option value="demo">Request Demo</option>
+                                        <option value="pricing">Pricing Questions</option>
+                                        <option value="technical">Technical Support</option>
+                                        <option value="partnership">Partnership Opportunities</option>
+                                    </select>
+                                    <div class="invalid-feedback">Please select a subject.</div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="message" class="form-label">Message *</label>
+                                    <textarea class="form-control" id="message" rows="5" placeholder="Tell us how we can help you transform your ministry..." required></textarea>
+                                    <div class="invalid-feedback">Please provide a message.</div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="newsletter">
+                                        <label class="form-check-label" for="newsletter">
+                                            Subscribe to our newsletter for updates and worship music tips
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12 text-center">
+                                    <button type="submit" class="btn-primary-custom">
+                                        <i class="fas fa-paper-plane me-2"></i>Send Message
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="glass-card p-4 text-center animate-on-scroll">
+                                <div class="feature-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <h5>Email Us</h5>
+                                <p class="mb-0">hello@gospelux.com</p>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="glass-card p-4 text-center animate-on-scroll">
+                                <div class="feature-icon">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <h5>Call Us</h5>
+                                <p class="mb-0">+1 (555) 123-SONG</p>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="glass-card p-4 text-center animate-on-scroll">
+                                <div class="feature-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <h5>Support Hours</h5>
+                                <p class="mb-0">24/7 Online Support<br>Mon-Fri 9AM-6PM Phone</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-5" style="background: rgba(0, 0, 0, 0.1);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="glass-card p-4">
+                        <div style="height: 400px; background: linear-gradient(135deg, #1a1f3a 0%, #2a2f4a 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                            <div class="text-center">
+                                <i class="fas fa-heart" style="font-size: 4rem; color: #FFD700; margin-bottom: 1rem;"></i>
+                                <h4>Serving God's People</h4>
+                                <p>Through innovative technology</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <h2 class="section-title">About Gospelux</h2>
+                    <p class="lead mb-4">We believe that technology should serve to enhance worship, not replace the human heart behind it. Gospelux was born from a vision to empower pastors, worship leaders, and music ministers with cutting-edge AI tools that honor the sacred nature of scripture while embracing modern innovation.</p>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="glass-card p-3 text-center">
+                                <h3 class="text-primary">10,000+</h3>
+                                <small>Churches Served</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="glass-card p-3 text-center">
+                                <h3 class="text-warning">50,000+</h3>
+                                <small>Songs Generated</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="mb-4">Our team consists of experienced worship leaders, AI researchers, and passionate believers who understand the unique needs of modern ministry. We're committed to creating tools that inspire authentic worship while respecting the timeless truths of God's Word.</p>
+                    
+                    <a href="#features" class="btn-primary-custom">
+                        <i class="fas fa-arrow-right me-2"></i>Explore Our Mission
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-5" style="background: rgba(0, 0, 0, 0.2);">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title animate-on-scroll">Our Services</h2>
+                <p class="section-subtitle animate-on-scroll">Comprehensive solutions for your worship and ministry needs</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="glass-card p-4 h-100 animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-magic"></i>
+                        </div>
+                        <h4 class="feature-title">AI Music Generation</h4>
+                        <p class="feature-description mb-4">Transform any Bible verse into beautiful worship music using our advanced AI algorithms. Choose from various musical styles, tempos, and arrangements to match your congregation's preferences.</p>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Scripture-based compositions</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Multiple musical styles</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Instant generation</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="glass-card p-4 h-100 animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                        <h4 class="feature-title">Team Collaboration</h4>
+                        <p class="feature-description mb-4">Work seamlessly with your worship team, share compositions, provide feedback, and build your church's unique music library together. Perfect for distributed teams and multiple locations.</p>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Real-time collaboration</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Version control</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Team permissions</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="glass-card p-4 h-100 animate-on-scroll">
+                        <div class="feature-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h4 class="feature-title">Training & Support</h4>
+                        <p class="feature-description mb-4">Get the most out of Gospelux with our comprehensive training programs, workshops, and ongoing support. We're here to help you succeed in your ministry.</p>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Video tutorials</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Live workshops</li>
+                            <li><i class="fas fa-check text-success me-2"></i>24/7 support</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-music me-2"></i>Gospelux
+                    </h5>
+                    <p>Transforming worship through AI-powered music generation. Empowering pastors, worship leaders, and music ministers worldwide.</p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#" class="text-light"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="mb-3">Product</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#features" class="text-light text-decoration-none">Features</a></li>
+                        <li><a href="#pricing" class="text-light text-decoration-none">Pricing</a></li>
+                        <li><a href="#demo" class="text-light text-decoration-none">Demo</a></li>
+                        <li><a href="#download" class="text-light text-decoration-none">Download</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="mb-3">Company</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#about" class="text-light text-decoration-none">About</a></li>
+                        <li><a href="#services" class="text-light text-decoration-none">Services</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Careers</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="mb-3">Support</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#contact" class="text-light text-decoration-none">Contact</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Help Center</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Documentation</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Status</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light text-decoration-none">Privacy</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Terms</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Security</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 2rem 0 1rem;">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">&copy; 2025 Gospelux. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0 text-muted">Made with ❤️ for God's Kingdom</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Particle Animation
+        function createParticles() {
+            const particleContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.width = particle.style.height = Math.random() * 4 + 2 + 'px';
+                particle.style.animationDuration = (Math.random() * 20 + 10) + 's';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particleContainer.appendChild(particle);
+            }
+        }
+
+        // Scroll Animation
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.animate-on-scroll');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animated');
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            elements.forEach(el => observer.observe(el));
+        }
+
+        // Form Validation
+        function initFormValidation() {
+            const form = document.getElementById('contactForm');
+            
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                if (form.checkValidity()) {
+                    // Simulate form submission
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+                    submitBtn.disabled = true;
+                    
+                    setTimeout(() => {
+                        submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Message Sent!';
+                        submitBtn.className = 'btn-secondary-custom';
+                        
+                        setTimeout(() => {
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.className = 'btn-primary-custom';
+                            submitBtn.disabled = false;
+                            form.reset();
+                            form.classList.remove('was-validated');
+                        }, 2000);
+                    }, 1500);
+                }
+                
+                form.classList.add('was-validated');
+            });
+        }
+
+        // Smooth Scrolling
+        function initSmoothScrolling() {
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        }
+
+        // Navbar Background on Scroll
+        function initNavbarScroll() {
+            const navbar = document.querySelector('.navbar');
+            
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 100) {
+                    navbar.style.background = 'rgba(10, 14, 26, 0.95)';
+                } else {
+                    navbar.style.background = 'rgba(10, 14, 26, 0.9)';
+                }
+            });
+        }
+
+        // Pricing Card Hover Effects
+        function initPricingEffects() {
+            const pricingCards = document.querySelectorAll('.pricing-card');
+            
+            pricingCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    if (!this.classList.contains('featured')) {
+                        this.style.transform = 'scale(1.02) translateY(-10px)';
+                    }
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('featured')) {
+                        this.style.transform = 'scale(1) translateY(0)';
+                    }
+                });
+            });
+        }
+
+        // Initialize all functions
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            animateOnScroll();
+            initFormValidation();
+            initSmoothScrolling();
+            initNavbarScroll();
+            initPricingEffects();
+        });
+    </script>
+</body>
+</html>

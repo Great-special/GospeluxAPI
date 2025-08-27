@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Contact — BibleSong AI</title>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+	<style>
+		body { font-family: 'Poppins', sans-serif; margin:0; background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); color:#1f2937; }
+		.wrap { max-width:960px; margin:40px auto; padding:28px; }
+		.card { background:#fff; padding:28px; border-radius:12px; box-shadow:0 10px 30px rgba(16,24,40,0.06); }
+		h1 { color:#4b2e83; margin:0 0 12px; }
+		p.lead { color:#6b7280; margin:0 0 24px; }
+		form { display:grid; gap:12px; }
+		input[type="text"], input[type="email"], textarea { width:100%; padding:12px 14px; border-radius:8px; border:1px solid #e6e6e6; font-size:1rem; }
+		textarea { min-height:140px; resize:vertical; }
+		.row { display:flex; gap:12px; }
+		.row .col { flex:1; }
+		.btn { background:#4b2e83; color:#fff; padding:12px 18px; border-radius:10px; text-decoration:none; display:inline-block; border:none; font-weight:600; }
+		.success { background:#ecfdf5; color:#065f46; padding:12px 14px; border-radius:8px; margin-bottom:12px; }
+	</style>
+</head>
+<body>
+	<div class="wrap">
+		<div class="card">
+			<h1>Contact Us</h1>
+			<p class="lead">Have questions or feedback about BibleSong AI? Send us a message and we'll get back to you.</p>
+
+			{% if request.method == 'POST' %}
+				<div class="success">Thanks — your message has been received. We'll reply as soon as we can.</div>
+			{% endif %}
+
+			<form method="post" action="{% url 'contact_page' %}">
+				{% csrf_token %}
+				<div class="row">
+					<div class="col"><input type="text" name="name" placeholder="Your name" required></div>
+					<div class="col"><input type="email" name="email" placeholder="Your email" required></div>
+				</div>
+				<div>
+					<textarea name="message" placeholder="Your message" required></textarea>
+				</div>
+				<div style="margin-top:8px; text-align:right;">
+					<button type="submit" class="btn">Send Message</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>BibleSong AI — Transform Scripture into Music</title>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--primary: #4b2e83;
+			--accent: #8ec5fc;
+			--muted: #6b7280;
+			--card: #ffffff;
+			--bg: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+		}
+
+		* { box-sizing: border-box; }
+		body { font-family: 'Poppins', sans-serif; margin: 0; color: #1f2937; background: var(--bg); }
+
+		.site-wrap { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+		.nav { display:flex; justify-content:space-between; align-items:center; gap:20px; }
+		.brand { font-weight:700; color: var(--primary); font-size:1.25rem; }
+
+		.hero { text-align:center; padding:80px 20px 60px; }
+		.hero h1 { font-size:3rem; margin:0 0 16px; color:var(--primary); }
+		.hero p { color:var(--muted); font-size:1.125rem; max-width:760px; margin:0 auto 28px; }
+
+		.cta-group { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+		.btn { padding:14px 28px; border-radius:999px; text-decoration:none; font-weight:600; }
+		.btn-primary { background:var(--primary); color:#fff; box-shadow:0 8px 30px rgba(75,46,131,0.12); }
+		.btn-ghost { background:rgba(255,255,255,0.95); color:var(--primary); }
+
+		.card-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:24px; margin-top:40px; }
+		.card { background:var(--card); padding:22px; border-radius:12px; box-shadow:0 10px 30px rgba(16,24,40,0.06); }
+		.card h3 { margin:8px 0; color:var(--primary); }
+		.card p { margin:0; color:var(--muted); }
+
+		.how { background:rgba(255,255,255,0.9); margin:40px 0 24px; padding:48px 20px; border-radius:14px; text-align:center; }
+		.steps { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-top:26px; }
+		.step { width:220px; }
+		.step .num { width:44px;height:44px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-weight:700; }
+		.footer { text-align:center; padding:36px 20px; color:var(--muted); }
+
+		@media (max-width:720px){ .hero h1 { font-size:2rem } .site-wrap { padding:20px } }
+	</style>
+</head>
+<body>
+	<div class="site-wrap">
+		<header class="nav">
+			<div class="brand">BibleSong AI</div>
+			<nav>
+				<a href="{% url 'home' %}" style="margin-right:18px; color:#fff; text-decoration:none; font-weight:600;">Home</a>
+				<a href="{% url 'contact_page' %}" style="color:#fff; text-decoration:none; font-weight:600;">Contact</a>
+			</nav>
+		</header>
+
+		<main>
+			<section class="hero">
+				<h1>Turn Scripture into Song — Instantly</h1>
+				<p>Create worshipful melodies from Bible verses using intelligent music generation. Personalize tempo, style and instrumentation — then share or download your song.</p>
+
+				<div class="cta-group">
+					<a class="btn btn-primary" href="{% url 'register' %}">Get Started — Free</a>
+					<a class="btn btn-ghost" href="#how">How it works</a>
+				</div>
+
+				<div class="card-row" style="margin-top:48px;">
+					<div class="card">
+						<div style="font-size:28px;">🎵</div>
+						<h3>AI Song Generation</h3>
+						<p>Generate unique arrangements from any verse — vocals, chords and instrumentation included.</p>
+					</div>
+					<div class="card">
+						<div style="font-size:28px;">📖</div>
+						<h3>Scripture Library</h3>
+						<p>Find passages by book, theme or keyword. Built-in history and favorites.</p>
+					</div>
+					<div class="card">
+						<div style="font-size:28px;">🌐</div>
+						<h3>Share & Collaborate</h3>
+						<p>Publish songs to the community, collaborate on arrangements and get feedback.</p>
+					</div>
+				</div>
+			</section>
+
+			<section id="how" class="how">
+				<h2>How it works</h2>
+				<p style="color:var(--muted); max-width:800px; margin:8px auto 0;">A simple 3-step flow that turns scripture into worship music — no experience required.</p>
+				<div class="steps">
+					<div class="step">
+						<div class="num">1</div>
+						<h4>Pick a Verse</h4>
+						<p style="color:var(--muted);">Search or paste the passage you want to set to music.</p>
+					</div>
+					<div class="step">
+						<div class="num">2</div>
+						<h4>Choose a Style</h4>
+						<p style="color:var(--muted);">Select genre, tempo and mood. Preview different arrangements in seconds.</p>
+					</div>
+					<div class="step">
+						<div class="num">3</div>
+						<h4>Generate & Share</h4>
+						<p style="color:var(--muted);">Download audio, export sheet music, or publish to the community.</p>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<footer class="footer">
+			<p>© {{ now|date:"Y" }} BibleSong AI • Made for worship and devotion</p>
+			<div style="margin-top:12px;"><a class="btn btn-primary" href="{% url 'register' %}">Create Your First Song</a></div>
+		</footer>
+	</div>
+</body>
+</html>
