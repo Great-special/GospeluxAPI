@@ -7,16 +7,52 @@ from .serializers import (
     BibleVersionSerializer, BookSerializer, ChapterSerializer, VerseSerializer,
     VerseDetailSerializer, ReadingPlanSerializer, ReadingPlanDaySerializer, BookmarkSerializer
 )
+from .api_bible import BibleAPI
+from decouple import config
+
+bible_api = BibleAPI(config('bible_api_key'))
 
 class BibleVersionListView(generics.ListAPIView):
     queryset = BibleVersion.objects.filter(is_active=True)
     serializer_class = BibleVersionSerializer
     permission_classes = [permissions.AllowAny]
 
+    def list(self, request, *args, **kwargs):
+        # Try to get from local database first
+        local_versions = super().list(request, *args, **kwargs)
+        # If no local versions, try to fetch from API
+        if not local_versions.data:
+            language = request.query_params.get('language', 'eng')
+            if language:
+                try:
+                    api_versions = bible_api.get_bibles(language=language)
+                    # Return API response if local database is empty
+                    return Response(api_versions)
+                except Exception as e:
+                    return Response(f'Error fetching version from API: {e}', status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(local_versions)
+        
 class BookListView(generics.ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [permissions.AllowAny]
+    
+    def list(self, request, *args, **kwargs):
+        # Try to get from local database first
+        local_books = super().list(request, *args, **kwargs)
+        # If no local versions, try to fetch from API
+        if not local_books.data:
+            bible_id = request.query_params.get('bible_id', 'de4e12af7f28f599-02')
+            if bible_id:
+                try:
+                    api_books = bible_api.get_books(bible_id)
+                    # Return API response if local database is empty
+                    return Response(api_books)
+                except Exception as e:
+                    return Response(f'Error fetching books from API: {e}', status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(local_books)
 
 class ChapterListView(generics.ListAPIView):
     serializer_class = ChapterSerializer
@@ -26,6 +62,26 @@ class ChapterListView(generics.ListAPIView):
         book_id = self.kwargs.get('book_id')
         return Chapter.objects.filter(book_id=book_id)
 
+    
+    def list(self, request, *args, **kwargs):
+        # Try to get from local database first
+        local_chapters = super().list(request, *args, **kwargs)
+        
+        # If no local chapters, try to fetch from API
+        if not local_chapters.data:
+            book_id = self.kwargs.get('book_id')
+            bible_id = request.query_params.get('bible_id')
+            
+            if bible_id and book_id:
+                try:
+                    api_chapters = bible_api.get_chapters(bible_id, book_id)
+                    # Return API response if local database is empty
+                    return Response(api_chapters)
+                except Exception as e:
+                    return Response(f"Error fetching chapters from API: {e}", status=status.HTTP_400_BAD_REQUEST)
+        
+        return local_chapters
+    
 class VerseListView(generics.ListAPIView):
     serializer_class = VerseDetailSerializer
     permission_classes = [permissions.AllowAny]

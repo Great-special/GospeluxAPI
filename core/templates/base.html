@@ -9,6 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{% static 'img/gospelus.png' %}">
 </head>
 <body>
     <!-- Particle Background -->
@@ -17,8 +18,9 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="#home">
-                <i class="fas fa-music me-2"></i>Gospelux
+            <a class="navbar-brand" href="{% url "home" %}">
+                {% comment %} <i class="fas fa-music me-2"></i>Gospelux {% endcomment %}
+                <img src="{% static 'img/gospelus.png' %}" class="logo"> Gospelux
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -46,7 +48,7 @@
             <div class="row g-4">
                 <div class="col-lg-4">
                     <h5 class="mb-3">
-                        <i class="fas fa-music me-2"></i>Gospelux
+                        <img src="{% static 'img/gospelus.png' %}" class="logo white-logo">Gospelux
                     </h5>
                     <p>Transforming worship through AI-powered music generation. Empowering pastors, worship leaders, and music ministers worldwide.</p>
                     <div class="d-flex gap-3 mt-3">
@@ -97,7 +99,7 @@
             <hr style="border-color: rgba(255,255,255,0.1); margin: 2rem 0 1rem;">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-0 text-muted">&copy; 2025 Gospelux. All rights reserved.</p>
+                    <p class="mb-0 text-muted">&copy; {% now "Y" %} Gospelux. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <p class="mb-0 text-muted">Made with ❤️ for God's Kingdom</p>

@@ -3,10 +3,11 @@ from core.models import BaseModel, Category, Tag
 
 class BibleVersion(BaseModel):
     """Different Bible versions (KJV, NIV, ESV, etc.)"""
+    bible_id = models.CharField(max_length=50, unique=True)  # API Bible ID
     name = models.CharField(max_length=100)
-    abbreviation = models.CharField(max_length=10, unique=True)
+    abbreviation = models.CharField(max_length=10)
     language = models.CharField(max_length=50, default='English')
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     
     class Meta:
@@ -17,11 +18,13 @@ class BibleVersion(BaseModel):
 
 class Book(BaseModel):
     """Books of the Bible"""
+    book_id = models.CharField(max_length=10, unique=True)  # API Book ID
+    bible_id = models.CharField(max_length=50, blank=True, null=True)  # To link with BibleVersion
     name = models.CharField(max_length=50)
     abbreviation = models.CharField(max_length=10)
     testament = models.CharField(max_length=20, choices=[
-        ('old', 'Old Testament'),
-        ('new', 'New Testament')
+        ('OT', 'Old Testament'),
+        ('NT', 'New Testament')
     ])
     book_number = models.PositiveIntegerField()
     total_chapters = models.PositiveIntegerField()
@@ -36,7 +39,7 @@ class Book(BaseModel):
 class Chapter(BaseModel):
     """Chapters within each book"""
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='chapters')
-    chapter_number = models.PositiveIntegerField()
+    chapter_number = models.CharField(max_length=10)  # Changed to CharField to accommodate non-numeric chapters
     total_verses = models.PositiveIntegerField()
     
     class Meta:
@@ -49,7 +52,7 @@ class Chapter(BaseModel):
 class Verse(BaseModel):
     """Individual Bible verses"""
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='verses')
-    verse_number = models.PositiveIntegerField()
+    verse_number = models.CharField(max_length=10)
     text = models.TextField()
     version = models.ForeignKey(BibleVersion, on_delete=models.CASCADE, related_name='verses')
     

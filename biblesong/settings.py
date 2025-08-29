@@ -270,3 +270,5 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
+
+BIBLE_API_KEY = config('bible_api_key')

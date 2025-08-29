@@ -74,7 +74,7 @@ body {
 .navbar-brand {
     font-weight: 800;
     font-size: 1.8rem;
-    background: linear-gradient(135deg, #4A90E2 0%, #FFD700 100%);
+    background: linear-gradient(135deg, #4A90E2 25%, #FFD700 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -95,12 +95,20 @@ body {
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(135deg, #4A90E2, #FFD700);
+    background: linear-gradient(135deg, #4A90E2, #ecc901);
     transition: width 0.3s ease;
 }
 
 .navbar-nav .nav-link:hover::after {
     width: 100%;
+}
+
+.logo {
+    height: 40px;
+}
+
+.white-logo {
+    filter: brightness(0) invert(1);
 }
 
 /* Hero Section */
