@@ -168,7 +168,7 @@ body {
 }
 
 /* Layout 1: Split Left-Right (Original) */
-.layout-1 .hero-title { font-size: 4.5rem; }
+.layout-1 .hero-title { font-size: 4.5rem;  margin-top: 5.5rem;}
 
 /* Layout 2: Centered with Background Visual */
 .layout-2 {
@@ -454,6 +454,10 @@ body {
 
 .form-control::placeholder {
     color: rgba(255, 255, 255, 0.6);
+}
+
+.options-text {
+    color: #0a0e1a;
 }
 
 /* Footer */

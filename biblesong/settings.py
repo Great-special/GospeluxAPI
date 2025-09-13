@@ -170,7 +170,7 @@ REST_FRAMEWORK = {
 
 # JWT Configuration
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=300),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -212,16 +212,16 @@ JAZZMIN_SETTINGS = {
     "site_title": "Gospelux Portal",
 
     # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_header": "Gospelux Administration",
+    "site_header": "Gospelux Portal",
 
     # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
     # "site_brand": "Your Site",
 
     # Logo to use for your site, must be present in static files, used for brand on top left
-    # "site_logo": "books/img/logo.png",
+    "site_logo": "img/gospelus.png",
 
     # Logo to use for your site, must be present in static files, used for login form logo
-    "login_logo": None,
+    "login_logo": "img/gospelus.png",
 
     # Logo to use for login form in dark themes
     "login_logo_dark": None,
@@ -230,13 +230,15 @@ JAZZMIN_SETTINGS = {
     "site_logo_classes": "img-circle",
 
     # Relative path to a favicon for your site, will default to site_logo if absent (ideally 32x32 px)
-    "site_icon": None,
+    "site_icon": 'img/gospelus.png',
 
     # Welcome text on the login screen
     "welcome_sign": "Welcome to Gospelux Portal",
 
     # Copyright on the footer
     "copyright": "Gospelux",
+    
+    "custom_css": "css/jazzmin-custom.css",
 }
 
 JAZZMIN_UI_TWEAKS = {

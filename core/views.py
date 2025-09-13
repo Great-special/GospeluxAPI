@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from django.conf import settings
 from django.http import HttpResponse
 
-from .models import ApplicationAPK, UserFeedBack
+from .models import ApplicationAPK, UserFeedBack, NewsLetterSubscriber
 
 
 @api_view(['GET'])
@@ -46,7 +46,26 @@ def contact_page(request):
     # template_name = 'bible_music_app_landing.html'
     
     if request.POST:
-        pass
+        name = request.POST.get('firstName') + ' ' + request.POST.get('lastName')
+        email = request.POST.get('email')
+        organization = request.POST.get('church')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+        newsletter = True if request.POST.get('newsletter') == 'on' else False
+        
+        feedback = UserFeedBack.objects.create(
+            full_name=name,
+            email=email,
+            organization=organization,
+            subject=subject,
+            message=message
+        )
+        feedback.save()
+        
+        if newsletter:
+            obj = NewsLetterSubscriber.objects.create(email=email)
+            obj.save()
+            
     return render(request, template_name)
 
 def about_page(request):

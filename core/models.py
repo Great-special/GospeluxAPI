@@ -39,6 +39,7 @@ class Tag(BaseModel):
 class UserFeedBack(BaseModel):
     full_name = models.CharField(max_length=150)
     email = models.EmailField()
+    organization = models.CharField(max_length=150, blank=True)
     subject = models.CharField(max_length=200)
     message = models.TextField()
 
@@ -56,3 +57,11 @@ class ApplicationAPK(BaseModel):
 
     def __str__(self):
         return f"{self.name} - {self.version}"
+
+
+class NewsLetterSubscriber(BaseModel):
+    email = models.EmailField(unique=True)
+    subscribed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email

@@ -29,7 +29,6 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{% url "home" %}">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url "about" %}">About</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url "contact" %}">Contact</a></li>
                     <li class="nav-item ms-3">
                         <a href="#download" class="btn-primary-custom">Download Now</a>
@@ -102,7 +101,7 @@
                     <p class="mb-0 text-muted">&copy; {% now "Y" %} Gospelux. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="mb-0 text-muted">Made with ❤️ for God's Kingdom</p>
+                    <p class="mb-0 text-muted">Made with ❤️ For God's Kingdom</p>
                 </div>
             </div>
         </div>
@@ -143,39 +142,7 @@
             elements.forEach(el => observer.observe(el));
         }
 
-        // Form Validation
-        function initFormValidation() {
-            const form = document.getElementById('contactForm');
-            
-            form.addEventListener('submit', function(event) {
-                event.preventDefault();
-                event.stopPropagation();
-                
-                if (form.checkValidity()) {
-                    // Simulate form submission
-                    const submitBtn = form.querySelector('button[type="submit"]');
-                    const originalText = submitBtn.innerHTML;
-                    
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
-                    submitBtn.disabled = true;
-                    
-                    setTimeout(() => {
-                        submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Message Sent!';
-                        submitBtn.className = 'btn-secondary-custom';
-                        
-                        setTimeout(() => {
-                            submitBtn.innerHTML = originalText;
-                            submitBtn.className = 'btn-primary-custom';
-                            submitBtn.disabled = false;
-                            form.reset();
-                            form.classList.remove('was-validated');
-                        }, 2000);
-                    }, 1500);
-                }
-                
-                form.classList.add('was-validated');
-            });
-        }
+    
 
         // Smooth Scrolling
         function initSmoothScrolling() {
@@ -229,7 +196,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
             animateOnScroll();
-            initFormValidation();
             initSmoothScrolling();
             initNavbarScroll();
             initPricingEffects();

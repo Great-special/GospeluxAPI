@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 
-admin.site.site_header = 'Gospelux Administration'
+admin.site.site_header = 'Gospelux Portal'
 admin.site.site_title = 'Gospelux Portal'
 admin.site.index_title = 'Welcome to My Portal'
 

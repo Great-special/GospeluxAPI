@@ -90,6 +90,13 @@ VERSION_SPECIFIC_MAPPINGS = {
     },
 }
 
+sample_version = (
+    "65eec8e0b60e656b-01", "de4e12af7f28f599-01", 
+    "de4e12af7f28f599-02",  
+    "6b7f504f1b6050c1-01", "48acedcf8595c754-01", 
+    "482ddd53705278cc-01")
+# "40072c4a5aba4022-01",
+
 def get_book_id_for_version(bible_id, book_name):
     """
     Get the correct book ID for a specific Bible version.
@@ -147,22 +154,23 @@ class DataSyncService:
             
             for bible_data in bibles_data:
                 bible_id = bible_data['id']
-                defaults = {
-                    'name': bible_data['name'],
-                    'abbreviation': bible_data['abbreviation'],
-                    'language': bible_data['language']['id'],
-                    'description': bible_data.get('description', ''),
-                    'is_active': True
-                }
+                if bible_id in sample_version:
+                    defaults = {
+                        'name': bible_data['name'],
+                        'abbreviation': bible_data['abbreviation'],
+                        'language': bible_data['language']['id'],
+                        'description': bible_data.get('description', ''),
+                        'is_active': True
+                    }
+                    
+                    bible_version, created = BibleVersion.objects.update_or_create(
+                        bible_id=bible_id,
+                        defaults=defaults
+                    )
+                    
+                    action = "Created" if created else "Updated"
+                    logger.info(f"{action} Bible version: {bible_version.name}")
                 
-                bible_version, created = BibleVersion.objects.update_or_create(
-                    bible_id=bible_id,
-                    defaults=defaults
-                )
-                
-                action = "Created" if created else "Updated"
-                logger.info(f"{action} Bible version: {bible_version.name}")
-            
             return True, f"Synced {len(bibles_data)} Bible versions"
             
         except Exception as e:
@@ -209,33 +217,38 @@ class DataSyncService:
     def sync_chapters_for_book(self, book):
         """Sync chapters for a specific book"""
         try:
-            response = self.bible_api.get_chapters(book.bible_id, get_book_id_for_version(book.bible_id, book.name))
-            chapters_data = response.get('data', [])
-            print(chapters_data)
-            for chapter_data in chapters_data:
-                chapter_id = chapter_data['id']
-                chapter_number = chapter_data['number']
+            bible_version = book.bible_id
+            if bible_version in sample_version:
+                book_id  = book.book_id
+                if book_id is None:
+                    return False, f"Could not determine book ID for {book.name} in version {bible_version}"
+                response = self.bible_api.get_chapters(bible_version, book_id)
+                chapters_data = response.get('data', [])
+                print("---Chapters---")
+                for chapter_data in chapters_data:
+                    chapter_number = chapter_data["id"]
+                    
+                    defaults = {
+                        'chapter_number': chapter_number,
+                        'total_verses': 0  # Will be updated when syncing verses
+                    }
+                    
+                    chapter, created = Chapter.objects.update_or_create(
+                        book=book,
+                        chapter_number=chapter_number,
+                        defaults=defaults
+                    )
+                    
+                    action = "Created" if created else "Updated"
+                    logger.info(f"{action} chapter: {book.name} {chapter_number}")
                 
-                defaults = {
-                    'chapter_number': chapter_number,
-                    'total_verses': 0  # Will be updated when syncing verses
-                }
+                # Update total chapters count for the book
+                book.total_chapters = len(chapters_data)
+                book.save()
                 
-                chapter, created = Chapter.objects.update_or_create(
-                    book=book,
-                    chapter_number=chapter_number,
-                    defaults=defaults
-                )
-                
-                action = "Created" if created else "Updated"
-                logger.info(f"{action} chapter: {book.name} {chapter_number}")
-            
-            # Update total chapters count for the book
-            book.total_chapters = len(chapters_data)
-            book.save()
-            
-            return True, f"Synced {len(chapters_data)} chapters for {book.name}"
-            
+                return True, f"Synced {len(chapters_data)} chapters for {book.name}"
+            else:
+                return True, f"Skipping chapter sync for {book.name} due to sample version"
         except Exception as e:
             logger.error(f"Error syncing chapters for {book.name}: {e}")
             return False, str(e)
@@ -244,46 +257,46 @@ class DataSyncService:
         """Sync verses for a specific chapter"""
         try:
             bible_version = chapter.book.bible_id
-            chapter_ref = f"{chapter.book.abbreviation}.{chapter.chapter_number}"
-            response = self.bible_api.get_verses(bible_version, chapter_ref)
-            verses_data = response.get('data', [])
-            
-            for verse_data in verses_data:
-                verse_id = verse_data['id']
-                verse_number = verse_data['number']
+            if bible_version in sample_version:
+                chapter_ref = chapter.chapter_number
+                response = self.bible_api.get_verses(bible_version, chapter_ref)
+                verses_data = response.get('data', [])
+                print("---Verses---")
+                for verse_data in verses_data:
+                    verse_id = verse_data['id']
+                    verse_number = verse_id.split('.')[-1]
+                    
+                    # Get verse content
+                    verse_content_response = self.bible_api.get_verse(
+                        bible_version, 
+                        verse_id,
+                        content_type='text',
+                        include_verse_numbers=False
+                    )
+                    
+                    verse_content = verse_content_response.get('data', {}).get('content', '')
+                    defaults = {
+                        'verse_number': verse_number,
+                        'text': verse_content,
+                    }
+                    
+                    verse, created = Verse.objects.update_or_create(
+                        chapter=chapter,
+                        verse_number=verse_number,
+                        version=BibleVersion.objects.get(bible_id=bible_version),
+                        defaults=defaults
+                    )
+                    
+                    action = "Created" if created else "Updated"
+                    logger.info(f"{action} verse: {chapter.book.name} {chapter.chapter_number}:{verse_number}")
                 
-                # Get verse content
-                verse_content_response = self.bible_api.get_verse(
-                    bible_version.bible_id, 
-                    verse_id,
-                    content_type='text',
-                    include_verse_numbers=False
-                )
+                # Update total verses count for the chapter
+                chapter.total_verses = len(verses_data)
+                chapter.save()
                 
-                verse_content = verse_content_response.get('data', {}).get('content', '')
-                
-                defaults = {
-                    'verse_number': verse_number,
-                    'text': verse_content,
-                    'version': bible_version
-                }
-                
-                verse, created = Verse.objects.update_or_create(
-                    chapter=chapter,
-                    verse_number=verse_number,
-                    version=bible_version,
-                    defaults=defaults
-                )
-                
-                action = "Created" if created else "Updated"
-                logger.info(f"{action} verse: {chapter.book.name} {chapter.chapter_number}:{verse_number}")
-            
-            # Update total verses count for the chapter
-            chapter.total_verses = len(verses_data)
-            chapter.save()
-            
-            return True, f"Synced {len(verses_data)} verses for {chapter.book.name} {chapter.chapter_number}"
-            
+                return True, f"Synced {len(verses_data)} verses for {chapter.book.name} {chapter.chapter_number}"
+            else:
+                return True, f"Skipping verse sync for {chapter.book.name} {chapter.chapter_number} due to sample version"
         except Exception as e:
             logger.error(f"Error syncing verses for {chapter.book.name} {chapter.chapter_number}: {e}")
             return False, str(e)
@@ -317,6 +330,7 @@ class DataSyncService:
         books = Book.objects.all()
         
         for book in books:
+            print(type(book), book)
             # Sync chapters for this book
             success, message = self.sync_chapters_for_book(book)
             results.append(message)
@@ -324,8 +338,8 @@ class DataSyncService:
                 continue
             
         # Get all chapters for this book
-        chapters = Chapter.objects.filter(book=book)
-        
+        chapters = Chapter.objects.all()
+        print("Chapters to sync:", len(chapters))
         for chapter in chapters:
             # Sync verses for this chapter
             success, message = self.sync_verses_for_chapter(chapter)

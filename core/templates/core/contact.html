@@ -9,9 +9,9 @@
             <div class="hero-main">
 				<div class="side-element left"></div>
         		<div class="side-element right"></div>
-                <h1 class="hero-title">Transform Your Worship with AI-Powered Music</h1>
-                <p class="hero-subtitle">Revolutionize your ministry with intelligent Bible music generation</p>
-                <p class="hero-description">Gospelux combines cutting-edge AI technology with sacred scripture to create personalized worship experiences. Generate dynamic music from any Bible verse, customize for your congregation, and elevate your spiritual journey.</p>
+                <h1 class="hero-title">Transform Scripture into Music and Video with AI</h1>
+                <p class="hero-subtitle">Worship reimagined, Bible verses brought to life through sound and visuals</p>
+                <p class="hero-description">Gospelux blends advanced AI with the Word of God to generate personalized worship music and inspiring videos. Create powerful, verse-driven experiences tailored for your ministry and elevate every moment of worship.</p>
                 <div class="d-flex flex-wrap gap-3 justify-content-center">
                     <a href="#demo" class="btn-primary-custom">
                         <i class="fas fa-play me-2"></i>Try Demo
@@ -20,7 +20,7 @@
                         <i class="fas fa-star me-2"></i>Explore Features
                     </a>
                 </div>
-                <div class="demo-cards">
+                <div class="demo-cards mb-4">
                     <div class="demo-card">
                         <i class="fas fa-bible"></i>
                         <span>Scripture Input</span>
@@ -48,47 +48,48 @@
             <div class="row justify-content-center">
                 <div class="col-lg-8">
                     <div class="glass-card p-5 animate-on-scroll">
-                        <form id="contactForm" novalidate>
+                        <form id="contactForm" novalidate method="post" action="{% url 'contact' %}">
+                            {% csrf_token %}
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="firstName" class="form-label">First Name *</label>
-                                    <input type="text" class="form-control" id="firstName" placeholder="Enter your first name" required>
+                                    <input type="text" class="form-control" name="firstName" id="firstName" placeholder="Enter your first name" required>
                                     <div class="invalid-feedback">Please provide a valid first name.</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="lastName" class="form-label">Last Name *</label>
-                                    <input type="text" class="form-control" id="lastName" placeholder="Enter your last name" required>
+                                    <input type="text" class="form-control" name="lastName" id="lastName" placeholder="Enter your last name" required>
                                     <div class="invalid-feedback">Please provide a valid last name.</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="email" class="form-label">Email *</label>
-                                    <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+                                    <input type="email" class="form-control" name="email" id="email" placeholder="Enter your email" required>
                                     <div class="invalid-feedback">Please provide a valid email address.</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="church" class="form-label">Church/Organization</label>
-                                    <input type="text" class="form-control" id="church" placeholder="Your church or organization">
+                                    <input type="text" class="form-control" name="church" id="church" placeholder="Your church or organization">
                                 </div>
                                 <div class="col-12">
                                     <label for="subject" class="form-label">Subject *</label>
-                                    <select class="form-control" id="subject" required>
-                                        <option value="">Select a subject</option>
-                                        <option value="general">General Inquiry</option>
-                                        <option value="demo">Request Demo</option>
-                                        <option value="pricing">Pricing Questions</option>
-                                        <option value="technical">Technical Support</option>
-                                        <option value="partnership">Partnership Opportunities</option>
+                                    <select class="form-control" name="subject" id="subject" required>
+                                        <option class="options-text" value="">Select a subject</option>
+                                        <option class="options-text" value="general">General Inquiry</option>
+                                        <option class="options-text" value="demo">Request Demo</option>
+                                        <option class="options-text" value="pricing">Pricing Questions</option>
+                                        <option class="options-text" value="technical">Technical Support</option>
+                                        <option class="options-text" value="partnership">Partnership Opportunities</option>
                                     </select>
                                     <div class="invalid-feedback">Please select a subject.</div>
                                 </div>
                                 <div class="col-12">
                                     <label for="message" class="form-label">Message *</label>
-                                    <textarea class="form-control" id="message" rows="5" placeholder="Tell us how we can help you transform your ministry..." required></textarea>
+                                    <textarea class="form-control" name="message" id="message" rows="5" placeholder="Tell us how we can help you transform your ministry..." required></textarea>
                                     <div class="invalid-feedback">Please provide a message.</div>
                                 </div>
                                 <div class="col-12">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="newsletter">
+                                        <input class="form-check-input" name="newsletter" type="checkbox" id="newsletter">
                                         <label class="form-check-label" for="newsletter">
                                             Subscribe to our newsletter for updates and worship music tips
                                         </label>

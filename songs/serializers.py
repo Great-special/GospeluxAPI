@@ -1,21 +1,21 @@
 from rest_framework import serializers
-from .models import Artist, Song, Album, Playlist, PlaylistSong, SongRequest, Favorite
+from .models import Song, Playlist, PlaylistSong, Favorite, GeneratedSongs, GeneratedSongsData
 
-class ArtistSerializer(serializers.ModelSerializer):
-    songs_count = serializers.IntegerField(source='songs.count', read_only=True)
+# class ArtistSerializer(serializers.ModelSerializer):
+#     songs_count = serializers.IntegerField(source='songs.count', read_only=True)
 
-    class Meta:
-        model = Artist
-        fields = ['id', 'name', 'biography', 'is_active', 'created_at', 'songs_count']
-        read_only_fields = ['created_at']
+#     class Meta:
+#         model = Artist
+#         fields = ['id', 'name', 'biography', 'is_active', 'created_at', 'songs_count']
+#         read_only_fields = ['created_at']
     
-class AlbumSerializer(serializers.ModelSerializer):
-    songs_count = serializers.IntegerField(source='songs.count', read_only=True)
+# class AlbumSerializer(serializers.ModelSerializer):
+#     songs_count = serializers.IntegerField(source='songs.count', read_only=True)
 
-    class Meta:
-        model = Album
-        fields = ['id', 'title', 'artist', 'release_date', 'category', 'songs_count']
-        read_only_fields = ['created_at']
+#     class Meta:
+#         model = Album
+#         fields = ['id', 'title', 'artist', 'release_date', 'category', 'songs_count']
+#         read_only_fields = ['created_at']
 
 class SongSerializer(serializers.ModelSerializer):
     artist_name = serializers.CharField(source='artist.name', read_only=True)
@@ -43,22 +43,22 @@ class PlaylistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlist
         fields = ['id', 'name', 'user', 'is_public', 'songs_count']
-        read_only_fields = ['created_at']
+        read_only_fields = ['created_at', 'user']
 
 
 class AddSongToPlaylistSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaylistSong
-        fields = ['playlist', 'song', 'order']
-        read_only_fields = ['created_at']
+        fields = ['song', 'order']
+        read_only_fields = ['created_at', 'playlist']
 
-class SongRequestSerializer(serializers.ModelSerializer):
-    user_email = serializers.EmailField(source='user.email', read_only=True)
+# class SongRequestSerializer(serializers.ModelSerializer):
+#     user_email = serializers.EmailField(source='user.email', read_only=True)
 
-    class Meta:
-        model = SongRequest
-        fields = ['id', 'title', 'artist_name', 'user', 'user_email', 'status', 'created_at']
-        read_only_fields = ['created_at']
+#     class Meta:
+#         model = SongRequest
+#         fields = ['id', 'title', 'artist_name', 'user', 'user_email', 'status', 'created_at']
+#         read_only_fields = ['created_at']
 
 class FavoriteSerializer(serializers.ModelSerializer):
     song_title = serializers.CharField(source='song.title', read_only=True)
@@ -69,3 +69,18 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'song', 'song_title', 'artist_name', 'created_at']
         read_only_fields = ['created_at']
 
+
+class GeneratedSongsSerializer(serializers.ModelSerializer):
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = GeneratedSongs
+        fields = "__all__"
+        read_only_fields = ['created_at']
+
+
+class GeneratedSongsDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GeneratedSongsData
+        fields = "__all__"
+        read_only_fields = ['created_at']
