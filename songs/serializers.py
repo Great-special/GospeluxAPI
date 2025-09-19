@@ -62,12 +62,12 @@ class AddSongToPlaylistSerializer(serializers.ModelSerializer):
 
 class FavoriteSerializer(serializers.ModelSerializer):
     song_title = serializers.CharField(source='song.title', read_only=True)
-    artist_name = serializers.CharField(source='song.artist.name', read_only=True)
+    artist_name = serializers.CharField(source='song.artist', read_only=True)
 
     class Meta:
         model = Favorite
         fields = ['id', 'user', 'song', 'song_title', 'artist_name', 'created_at']
-        read_only_fields = ['created_at']
+        read_only_fields = ['created_at', 'user']
 
 
 class GeneratedSongsSerializer(serializers.ModelSerializer):
@@ -75,8 +75,8 @@ class GeneratedSongsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GeneratedSongs
-        fields = "__all__"
-        read_only_fields = ['created_at']
+        fields = ["id", "user", "bible_verse", "genre", "created_at", "user_email"]
+        read_only_fields = ['created_at', 'user']
 
 
 class GeneratedSongsDataSerializer(serializers.ModelSerializer):

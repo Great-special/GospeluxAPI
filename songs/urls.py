@@ -17,6 +17,10 @@ urlpatterns = [
     # path('requests/<uuid:pk>/', views.SongRequestDetailView.as_view(), name='song_request_detail'),
     path('favorites/', views.FavoriteListCreateView.as_view(), name='favorites'),
     path('favorites/<uuid:pk>/', views.FavoriteDetailView.as_view(), name='favorite_detail'),
-    path('songs/<uuid:song_id>/toggle-favorite/', views.toggle_favorite, name='toggle_favorite'),
+    path('favorites/<uuid:song_id>/toggle-favorite/', views.toggle_favorite, name='toggle_favorite'),
+    path('generated/list/', views.GeneratedSongsListView.as_view(), name='generated_songs'),
+    path('generate/', views.GeneratedSongsCreateView.as_view(), name='generate_songs'),
+    path('generated/<uuid:pk>/', views.GeneratedSongsDetailView.as_view(), name='generated_songs_detail'),
+    
     path('generate-music-callback/', views.handle_callback, name='generate_music_callback'),
 ]

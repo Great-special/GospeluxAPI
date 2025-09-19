@@ -128,6 +128,7 @@ class PlaylistListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         # Automatically attach the logged-in user
         serializer.save(user=self.request.user)
+        return super().perform_create(serializer)
 
 class PlaylistDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PlaylistSerializer
@@ -211,7 +212,11 @@ class FavoriteListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Favorite.objects.filter(user=self.request.user).select_related('song__artist', 'song__album')
+        return Favorite.objects.filter(user=self.request.user).select_related('song')
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+        return super().perform_create(serializer)
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
@@ -230,7 +235,7 @@ def toggle_favorite(request, song_id):
     else:
         return Response({'message': 'Song added to favorites', 'is_favorited': True})
 
-class FavoriteDetailView(generics.DestroyAPIView):
+class FavoriteDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FavoriteSerializer
     permission_classes = [permissions.IsAuthenticated]
     
@@ -238,37 +243,61 @@ class FavoriteDetailView(generics.DestroyAPIView):
         return Favorite.objects.filter(user=self.request.user)
 
 class GeneratedSongsListView(generics.ListAPIView):
-    serializer_class = GeneratedSongsSerializer
+    serializer_class = GeneratedSongsDataSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return GeneratedSongs.objects.filter(user=self.request.user).select_related("data").order_by('-created_at')
+        generated_song = GeneratedSongs.objects.filter(user=self.request.user).first()
+        return GeneratedSongsData.objects.filter(generated_song=generated_song).order_by('-created_at')
 
 class GeneratedSongsDetailView(generics.RetrieveAPIView):
-    serializer_class = GeneratedSongsSerializer
+    serializer_class = GeneratedSongsDataSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return GeneratedSongs.objects.filter(user=self.request.user)
+        generated_song = GeneratedSongs.objects.filter(user=self.request.user).first()
+        return GeneratedSongsData.objects.filter(generated_song=generated_song).order_by('-created_at')
 
 
 
 class GeneratedSongsCreateView(generics.CreateAPIView):
     serializer_class = GeneratedSongsSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
-    def perform_create(self, serializer):
-        title = self.request.data.get('title', None)
-        lyrics = self.request.data.get('lyrics', '')
-        bible_verse = self.request.data.get('bible_verse', '')
-        genre = self.request.data.get('genre', 'gospel')
-        mood = self.request.data.get('mood', 'uplifting')
+
+    def create(self, request, *args, **kwargs):
+        title = request.data.get('title', None)
+        lyrics = request.data.get('lyrics', '')
+        bible_verse = request.data.get('bible_verse', '')
+        genre = request.data.get('genre', 'gospel')
+        mood = request.data.get('mood', 'uplifting')
+
+        try:
+            # Call external music generation utility
+            response = generate_song(title=title, bible_verse=bible_verse, genre=genre, mood=mood)
+            task_id = response.get('data').get('taskId')
+
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+
+            # Save the instance with user + custom fields
+            serializer.instance.user = request.user
+            serializer.instance.title = title
+            serializer.instance.status = 'processing'
+            serializer.instance.task_id = task_id
+            serializer.instance.save()
+
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+        except Exception as e:
+            logger.error(f"Error generating song: {e}")
+            return Response(
+                {'error': 'Failed to initiate music generation'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
         
-        # Call the external music generation utility
-        response = generate_song(title=title, bible_verse=bible_verse, genre=genre, mood=mood)
-        task_id = response.get('data').get('taskId')
-        # Save the GeneratedSongs instance with status 'processing'
-        serializer.save(user=self.request.user, title=title, status='processing', task_id=task_id)
     
    
     
