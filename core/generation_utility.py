@@ -5,7 +5,7 @@ from decouple import config
 
 
 
-API_KEY = config('SUNO_API_KEY')
+API_KEY = config('SUNO_API_KEY', default='your_api_key_here')
 BASE_URL = "https://api.sunoapi.org/api/v1"
 
 headers = {

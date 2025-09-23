@@ -1,0 +1,22 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{% trans "Redirecting..." %}</title>
+    <script>
+        // Auto-submit the form immediately
+        window.onload = function() {
+            document.getElementById("redirect-form").submit();
+        };
+    </script>
+</head>
+<body>
+    <form id="redirect-form" method="post" action="{{ action_url }}">
+        {% csrf_token %}
+        {% for field in hidden_inputs %}
+            {{ field }}
+        {% endfor %}
+    </form>
+</body>
+</html>

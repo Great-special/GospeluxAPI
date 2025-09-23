@@ -22,10 +22,7 @@
                 {% comment %} <i class="fas fa-music me-2"></i>Gospelux {% endcomment %}
                 <img src="{% static 'img/gospelus.png' %}" class="logo"> Gospelux
             </a>
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="collapse navbar-collapse d-none d-lg-flex" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{% url "home" %}">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url "about" %}">About</a></li>
@@ -35,6 +32,11 @@
                     </li>
                 </ul>
             </div>
+
+            <!-- Mobile offcanvas toggler (visible on small screens) -->
+            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu" aria-label="Toggle navigation">
+                <span style="color:#fff; font-size:1.1rem;"><i class="fas fa-bars"></i></span>
+            </button>
         </div>
     </nav>
 
@@ -109,6 +111,22 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Mobile offcanvas menu (dark theme) -->
+    <div class="offcanvas offcanvas-start text-light bg-dark" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel" style="width:280px;">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title text-light navbar-brand" id="mobileMenuLabel">Gospelux</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-3">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link py-2 text-light" href="{% url 'home' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link py-2 text-light" href="{% url 'about' %}">About</a></li>
+                <li class="nav-item"><a class="nav-link py-2 text-light" href="{% url 'contact' %}">Contact</a></li>
+                <li class="nav-item mt-3"><a class="btn btn-primary w-100" href="#download">Download Now</a></li>
+            </ul>
+        </div>
+    </div>
     
     <script>
         // Particle Animation

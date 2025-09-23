@@ -206,44 +206,65 @@
             <div class="row justify-content-center g-4">
                 <div class="col-lg-4 col-md-6">
                     <div class="glass-card pricing-card p-4 h-100 text-center animate-on-scroll">
-                        <h3 class="mb-4">Starter</h3>
-                        <div class="price mb-4">$19<small class="text-muted fs-6">/month</small></div>
+                        <h3 class="mb-4">Free Plan</h3>
+                        {% comment %} <div class="price mb-4">$19<small class="text-muted fs-6">/month</small></div> {% endcomment %}
                         <ul class="list-unstyled mb-4">
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>50 AI generations/month</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Basic customization</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Mobile app access</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Email support</li>
-                            <li class="mb-2"><i class="fas fa-times text-muted me-2"></i>Team collaboration</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Bible Translations</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Daily Verse Notifications</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>30-Day Devotional Pack</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>1 Song Generation Per Day</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Basic Video Generations</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Genre Selection</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Advanced Devotion Packs</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Study Tools(Commentaries, Concordance)</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Multilingual</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Limited Social Sharing</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Cloud Sync & Storage</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Offline Playback</li>
                         </ul>
-                        <a href="#" class="btn-primary-custom">Get Started</a>
+                        <a href="{% url "web_register" 'free' %}" class="btn-primary-custom">Get Started</a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
                     <div class="glass-card pricing-card featured p-4 h-100 text-center animate-on-scroll">
-                        <h3 class="mb-4">Professional</h3>
-                        <div class="price mb-4">$49<small class="text-muted fs-6">/month</small></div>
+                        <h3 class="mb-4">Premium Plan</h3>
+                        <div class="price mb-4">$7.99<small class="text-muted fs-6">/month</small></div>
                         <ul class="list-unstyled mb-4">
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited AI generations</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Advanced customization</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Team collaboration (5 users)</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Analytics dashboard</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Priority support</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Bible Translations</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Daily Verse Notifications</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>30-Day Devotional Pack</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited Song Generation</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Advanced Video Generations</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Genre Selection</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Advanced Devotion Packs</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Study Tools(Commentaries, Concordance)</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Multilingual</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited Social Sharing</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Cloud Sync & Storage</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Offline Playback</li>
                         </ul>
-                        <a href="#" class="btn-secondary-custom">Most Popular</a>
+                        <a href="{% url "web_register" 'premium' %}" class="btn-secondary-custom">Most Popular</a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
                     <div class="glass-card pricing-card p-4 h-100 text-center animate-on-scroll">
-                        <h3 class="mb-4">Enterprise</h3>
-                        <div class="price mb-4">$99<small class="text-muted fs-6">/month</small></div>
+                        <h3 class="mb-4">Lifetime Plan</h3>
+                        <div class="price mb-4">$199</div>
                         <ul class="list-unstyled mb-4">
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Everything in Professional</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited team members</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Custom AI training</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>API access</li>
-                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Dedicated support</li>
+                             <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Bible Translations</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Daily Verse Notifications</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>30-Day Devotional Pack</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited Song Generation</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Advanced Video Generations</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Genre Selection</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Advanced Devotion Packs</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Study Tools(Commentaries, Concordance)</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Multilingual</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited Social Sharing</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Cloud Sync & Storage</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Offline Playback</li>
                         </ul>
-                        <a href="#" class="btn-primary-custom">Contact Sales</a>
+                        <a href="{% url "web_register" 'lifetime' %}" class="btn-primary-custom">Contact Sales</a>
                     </div>
                 </div>
             </div>

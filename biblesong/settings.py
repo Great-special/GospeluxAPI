@@ -42,11 +42,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     
     # Third-party apps
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    
     
     # Custom apps
     'bible.apps.BibleConfig',
@@ -56,15 +62,20 @@ INSTALLED_APPS = [
     
 ]
 
+SITE_ID = 2
+
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'core.middleware.GlobalAccessMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
@@ -73,7 +84,7 @@ ROOT_URLCONF = 'biblesong.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -92,13 +103,32 @@ WSGI_APPLICATION = 'biblesong.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+environment = config('ENV', default='production')
 
+if environment == 'development':
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+
+    # Production DB
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': config('DB_NAME', default='gospqyhq_Gospelux'),
+            'USER': config('DB_USER', default='gospqyhq_root-admin'),
+            'PASSWORD': config('DB_PASSWORD', default='WNY3h-JbGh)+'),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='3306'),
+        }
+    }
+
+# -Ms#ZEhT^SC}
+# mysql WNY3h-JbGh)+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -135,17 +165,22 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+MEDIA_URL = '/media/'
+if environment == 'development':
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+else:
+    
+    # SharedHosting Static Directory
+    # STATIC_ROOT = '/home/gospqyhq/public_html/staticfiles/'
+    STATIC_ROOT = '/home/gospqyhq/Gospelux/staticfiles/'
+
 
 # STATICFILES_DIRS = [
 #     os.path.join(BASE_DIR, 'static'),
 # ]
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # Default primary key field type
@@ -167,6 +202,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20
 }
+
 
 # JWT Configuration
 SIMPLE_JWT = {
@@ -205,6 +241,26 @@ CORS_ALLOW_CREDENTIALS = True
 # OTP Configuration
 OTP_EXPIRY_MINUTES = 10
 
+# Django Allauth Configuration
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # or 'mandatory'
+ACCOUNT_USERNAME_REQUIRED = False
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# Social auth settings
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        # 'APP': {
+        #     'client_id': config('GOOGLE_CLIENT_ID', default='30123890953-ua762b5vemvd8jf507vqtgmi00k08se2.apps.googleusercontent.com'),
+        #     'secret': config('GOOGLE_CLIENT_SECRET', default='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'),
+        #     'key': '',
+        # },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    }
+}
 
 # Jazzmin Configuration
 JAZZMIN_SETTINGS = {
@@ -273,4 +329,12 @@ JAZZMIN_UI_TWEAKS = {
     }
 }
 
-BIBLE_API_KEY = config('bible_api_key')
+BIBLE_API_KEY = config('bible_api_key', default='')
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

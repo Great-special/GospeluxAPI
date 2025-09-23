@@ -65,3 +65,13 @@ class NewsLetterSubscriber(BaseModel):
 
     def __str__(self):
         return self.email
+
+
+class AccessModel(models.Model):
+    mode = models.CharField(max_length=50, verbose_name='mode')
+    description = models.TextField(blank=True, null=True, verbose_name='description')
+    allowed = models.BooleanField(default=True, verbose_name='allowed')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='created at')
+    
+    def __str__(self):
+        return self.mode

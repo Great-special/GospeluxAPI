@@ -10,7 +10,7 @@ from .serializers import (
 from .api_bible import BibleAPI
 from decouple import config
 
-bible_api = BibleAPI(config('bible_api_key'))
+bible_api = BibleAPI(config('bible_api_key', default=''))
 
 class BibleVersionListView(generics.ListAPIView):
     queryset = BibleVersion.objects.filter(is_active=True)

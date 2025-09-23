@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <link rel="stylesheet" href="{% static "css/register.css" %}">
+    <title>Join Gospelux - Transform Your Ministry Today</title>
+
+    <!-- Particle Background -->
+    <div class="particle-bg" id="particles"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-music me-2"></i>Gospelux
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="text-muted me-3">Already have an account?</span>
+                <a href="/login" class="btn-outline-custom">Sign In</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Registration Container -->
+    <div class="registration-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-7">
+                    <!-- Header -->
+                    <div class="registration-header">
+                        <h1 class="registration-title">Join Gospelux</h1>
+                        <p class="registration-subtitle">Transform your ministry with AI-powered music generation</p>
+                        <div class="registration-benefits">
+                            <div class="benefit-item">
+                                <i class="fas fa-check text-success"></i>
+                                <span>14-day free trial</span>
+                            </div>
+                            <div class="benefit-item">
+                                <i class="fas fa-check text-success"></i>
+                                <span>No credit card required</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Registration Form -->
+                    <div class="glass-card p-4 p-md-5">
+                        <!-- Success Message -->
+                        <div class="success-message" id="successMessage">
+                            <div class="success-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <h3 class="mb-3">Welcome to Gospelux!</h3>
+                            <p class="mb-4">Your account has been created successfully. Check your email for verification instructions.</p>
+                            <a href="/dashboard" class="btn-primary-custom">
+                                <i class="fas fa-arrow-right me-2"></i>Get Started
+                            </a>
+                        </div>
+
+                        <!-- Registration Form -->
+                        <div id="registrationForm">
+                            <!-- Google SSO -->
+                             {% load socialaccount %}
+                            <a href="{% provider_login_url 'google' %}?next=/" class="google-btn" id="googleSignup">
+                                <div class="google-icon"></div>
+                                Continue with Google
+                            </a>
+
+                            <div class="divider">
+                                <span>Or register with email</span>
+                            </div>
+
+                            <!-- Email Form -->
+                            <form method="post" id="emailForm" novalidate>
+                                {% csrf_token %}
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label for="username" class="form-label">Username<span class="required">*</span></label>
+                                        <input type="text" class="form-control" id="username" name="username" placeholder="Choose a username" required>
+                                        <div class="form-text">This will be your unique identifier on Gospelux.</div>
+                                        <div class="invalid-feedback">Please choose a username (3-20 characters, letters, numbers, and underscores only).</div>
+                                        <div class="valid-feedback">Username is available!</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="firstName" class="form-label">First Name<span class="required">*</span></label>
+                                        <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Enter your first name" required>
+                                        <div class="invalid-feedback">Please provide your first name.</div>
+                                        <div class="valid-feedback">Looks good!</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="lastName" class="form-label">Last Name<span class="required">*</span></label>
+                                        <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Enter your last name" required>
+                                        <div class="invalid-feedback">Please provide your last name.</div>
+                                        <div class="valid-feedback">Looks good!</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="email" class="form-label">Email Address<span class="required">*</span></label>
+                                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email address" required>
+                                        <div class="invalid-feedback">Please provide a valid email address.</div>
+                                        <div class="valid-feedback">Email looks good!</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="password" class="form-label">Password<span class="required">*</span></label>
+                                        <div class="position-relative">
+                                            <input type="password" class="form-control" id="password" name="password" placeholder="Create a strong password" required>
+                                            <button type="button" class="password-toggle" id="togglePassword">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="password-strength">
+                                            <div class="strength-bar">
+                                                <div class="strength-fill" id="strengthFill"></div>
+                                            </div>
+                                            <div class="strength-text" id="strengthText">Password strength</div>
+                                        </div>
+                                        <div class="invalid-feedback">Password must be at least 8 characters long.</div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn-primary-custom mt-4" id="submitBtn">
+                                    <i class="fas fa-user-plus me-2"></i>Create Account
+                                </button>
+                            </form>
+
+                            <!-- Terms and Privacy -->
+                            <div class="terms-text">
+                                By creating an account, you agree to our 
+                                <a href="/terms">Terms of Service</a> and 
+                                <a href="/privacy">Privacy Policy</a>.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Particle Animation
+        function createParticles() {
+            const particleContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.width = particle.style.height = Math.random() * 4 + 2 + 'px';
+                particle.style.animationDuration = (Math.random() * 20 + 10) + 's';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particleContainer.appendChild(particle);
+            }
+        }
+
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            let feedback = [];
+
+            if (password.length >= 8) strength += 1;
+            else feedback.push('at least 8 characters');
+
+            if (/[a-z]/.test(password)) strength += 1;
+            else feedback.push('lowercase letter');
+
+            if (/[A-Z]/.test(password)) strength += 1;
+            else feedback.push('uppercase letter');
+
+            if (/[0-9]/.test(password)) strength += 1;
+            else feedback.push('number');
+
+            if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+            else feedback.push('special character');
+
+            return { strength, feedback };
+        }
+
+        // Update password strength indicator
+        function updatePasswordStrength() {
+            const password = document.getElementById('password').value;
+            const strengthFill = document.getElementById('strengthFill');
+            const strengthText = document.getElementById('strengthText');
+            
+            if (!password) {
+                strengthFill.style.width = '0%';
+                strengthText.textContent = 'Password strength';
+                return;
+            }
+
+            const { strength, feedback } = checkPasswordStrength(password);
+            const percentage = (strength / 5) * 100;
+            
+            strengthFill.style.width = percentage + '%';
+            
+            if (strength < 2) {
+                strengthFill.style.background = '#dc3545';
+                strengthText.textContent = 'Weak password';
+            } else if (strength < 4) {
+                strengthFill.style.background = '#ffc107';
+                strengthText.textContent = 'Medium strength';
+            } else {
+                strengthFill.style.background = '#28a745';
+                strengthText.textContent = 'Strong password';
+            }
+        }
+
+        // Form validation
+        function validateForm() {
+            const form = document.getElementById('emailForm');
+            let isValid = true;
+
+            // Username validation
+            const username = document.getElementById('username');
+            const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+            if (!usernameRegex.test(username.value)) {
+                username.classList.add('is-invalid');
+                username.classList.remove('is-valid');
+                isValid = false;
+            } else {
+                username.classList.add('is-valid');
+                username.classList.remove('is-invalid');
+            }
+
+            // First name validation
+            const firstName = document.getElementById('firstName');
+            if (firstName.value.trim().length < 2) {
+                firstName.classList.add('is-invalid');
+                firstName.classList.remove('is-valid');
+                isValid = false;
+            } else {
+                firstName.classList.add('is-valid');
+                firstName.classList.remove('is-invalid');
+            }
+
+            // Last name validation
+            const lastName = document.getElementById('lastName');
+            if (lastName.value.trim().length < 2) {
+                lastName.classList.add('is-invalid');
+                lastName.classList.remove('is-valid');
+                isValid = false;
+            } else {
+                lastName.classList.add('is-valid');
+                lastName.classList.remove('is-invalid');
+            }
+
+            // Email validation
+            const email = document.getElementById('email');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email.value)) {
+                email.classList.add('is-invalid');
+                email.classList.remove('is-valid');
+                isValid = false;
+            } else {
+                email.classList.add('is-valid');
+                email.classList.remove('is-invalid');
+            }
+
+            // Password validation
+            const password = document.getElementById('password');
+            const { strength } = checkPasswordStrength(password.value);
+            if (strength < 3) {
+                password.classList.add('is-invalid');
+                password.classList.remove('is-valid');
+                isValid = false;
+            } else {
+                password.classList.add('is-valid');
+                password.classList.remove('is-invalid');
+            }
+
+            return isValid;
+        }
+
+        // Handle form submission
+        function handleSubmit(event) {
+            
+            if (!validateForm()) {
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading state
+            submitBtn.innerHTML = '<div class="spinner me-2"></div>Creating Account...';
+            submitBtn.classList.add('loading');
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Hide form and show success message
+                document.getElementById('registrationForm').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+            }, 2000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            // Event listeners
+            document.getElementById('emailForm').addEventListener('submit', handleSubmit);
+            document.getElementById('googleSignup').addEventListener('click', handleGoogleSignup);
+            document.getElementById('togglePassword').addEventListener('click', togglePasswordVisibility);
+            
+            // Password strength checker
+            document.getElementById('password').addEventListener('input', updatePasswordStrength);
+            
+            // Real-time validation
+            document.getElementById('username').addEventListener('blur', validateForm);
+            document.getElementById('firstName').addEventListener('blur', validateForm);
+            document.getElementById('lastName').addEventListener('blur', validateForm);
+            document.getElementById('email').addEventListener('blur', validateForm);
+            document.getElementById('password').addEventListener('blur', validateForm);
+        });
+    </script>
+{% endblock %}

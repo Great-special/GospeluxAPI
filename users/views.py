@@ -3,9 +3,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.shortcuts import redirect, render
 from django.contrib.auth import get_user_model
+from django.contrib import messages
 from django.utils import timezone
-from .models import User, OTP
+from .models import User, OTP, Plan, UserPlan
 from .serializers import (
     UserRegistrationSerializer, UserLoginSerializer, OTPVerificationSerializer,
     ResendOTPSerializer, ForgotPasswordSerializer, ResetPasswordSerializer,
@@ -184,6 +186,69 @@ def reset_password(request):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+def web_register(request, plan):
+    if request.method == 'POST' and plan in ('free', 'premium', 'lifetime'):
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        first_name = request.POST.get('firstName')
+        last_name = request.POST.get('lastName')
+        password = request.POST.get('password')
+        
+        if all((username, email, first_name, last_name, password)):
+            if User.objects.filter(email=email).exists():
+                return render(request, 'users/register.html', {'error': 'Email already in use'})
+            if User.objects.filter(username=username).exists():
+                return render(request, 'users/register.html', {'error': 'Username already in use'})
+            
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                password=password
+            )
+            user.is_email_verified = False
+            user.save()
+            messages.success(request, 'Registration successful! You can now login on the app.') 
+            # # Create and send OTP for email verification
+            # otp = OTP.objects.create(
+            #     user=user,
+            #     otp_type='email_verification'
+            # )
+            # send_otp_email(user.email, otp.otp_code, 'email_verification')
+            
+            if plan != 'free':
+                return redirect(sub_payment(request, plan))
+            else:
+                subscription(plan, user)
+            
+            
+            return render(request, 'users/register.html', {
+                'message': 'Registration successful! Please check your email for the verification code.'
+            })
+    
+    
+    return render(request, 'users/register.html')
+
+
+def subscription(plan, user):
+    try:
+        plan_obj = Plan.objects.get(name=plan)
+        userPlan = UserPlan.objects.create(user=user, plan=plan_obj)
+        userPlan.start_date = timezone.now()
+        userPlan.end_date = None if plan == 'lifetime' else timezone.now() + timezone.timedelta(days=plan_obj.duration_days)
+        userPlan.save()
+        return True
+    except Plan.DoesNotExist:
+        return False
+
+
+def sub_payment(request, plan):
+    # Placeholder for payment processing logic
+    # Integrate with a payment gateway like Stripe or PayPal here
+    plan_obj = Plan.objects.get(name=plan)
+    return render(request, 'payment.html', {'stripe_key': settings.STRIPE_PUBLIC_KEY, 'course':course})
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer

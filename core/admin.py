@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Tag, UserFeedBack, ApplicationAPK
+from .models import Category, Tag, UserFeedBack, ApplicationAPK, AccessModel
 from bible.models import Book, Chapter, Verse, BibleVersion, ReadingPlan, ReadingPlanDay, Bookmark 
 
 @admin.register(Category)
@@ -53,3 +53,4 @@ admin_site.register(BibleVersion)
 admin_site.register(ReadingPlan)
 admin_site.register(ReadingPlanDay)
 admin_site.register(Bookmark)
+admin_site.register(AccessModel)

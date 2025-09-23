@@ -60,3 +60,39 @@ class OTP(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        
+
+
+class Plan(models.Model):
+    PLAN_CHOICES = (
+        ('free', 'Free'),
+        ('premium', 'Premium'),
+        ('lifetime', 'LifeTime'),
+    )
+    
+    name = models.CharField(max_length=50, choices=PLAN_CHOICES, unique=True)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    duration_days = models.IntegerField(default=0)  # 0 for lifetime
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+
+class UserPlan(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='plan')
+    plan_type = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True)
+    start_date = models.DateTimeField(blank=True, null=True)
+    end_date = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.plan_type}"
+
+    def is_active(self):
+        if self.plan_type == 'free':
+            return True
+        if self.end_date:
+            return timezone.now() < self.end_date
+        return False

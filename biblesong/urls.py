@@ -28,10 +28,15 @@ admin.site.index_title = 'Welcome to My Portal'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),  # Core app for home page and other static pages
+    path('', include('users.web_urls')),  # Users app for web registration and login
+    path('accounts/', include('allauth.urls')),  # Django Allauth for account management 
     path('api/v1/bible/', include('bible.urls')),  # Bible app for Bible-related APIs
     path('api/v1/songs/', include('songs.urls')),  # Songs app for song-related APIs
     path('api/v1/users/', include('users.urls')),  # Users app for user-related APIs
+    
 ]
+
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
