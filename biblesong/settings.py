@@ -252,8 +252,8 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         # 'APP': {
-        #     'client_id': config('GOOGLE_CLIENT_ID', default='30123890953-ua762b5vemvd8jf507vqtgmi00k08se2.apps.googleusercontent.com'),
-        #     'secret': config('GOOGLE_CLIENT_SECRET', default='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'),
+        #     'client_id': config('GOOGLE_CLIENT_ID', default=''),
+        #     'secret': config('GOOGLE_CLIENT_SECRET', default=''),
         #     'key': '',
         # },
         'SCOPE': ['profile', 'email'],

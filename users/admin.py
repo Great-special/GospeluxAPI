@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, OTP
+from .models import User, OTP, Plan, UserPlan
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
@@ -30,3 +30,18 @@ class OTPAdmin(admin.ModelAdmin):
     search_fields = ('user__email', 'otp_code')
     readonly_fields = ('created_at', 'expires_at')
     ordering = ('-created_at',)
+
+
+@admin.register(Plan)
+class PlanAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price', 'created_at')
+    list_filter = ('name', 'created_at')
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
+    
+
+@admin.register(UserPlan)
+class UserPlanAdmin(admin.ModelAdmin):
+    list_display = ('user', 'plan_type', 'start_date', 'end_date')
+    list_filter = ('plan_type', 'start_date', 'end_date')
+    search_fields = ('user__email', 'plan_type__name')
