@@ -22,5 +22,5 @@ urlpatterns = [
     path('generate/', views.GeneratedSongsCreateView.as_view(), name='generate_songs'),
     path('generated/<uuid:pk>/', views.GeneratedSongsDetailView.as_view(), name='generated_songs_detail'),
     
-    path('generate-music-callback/', views.handle_callback, name='generate_music_callback'),
+    path('generated-music-callback/', views.handle_callback, name='generate_music_callback'),
 ]

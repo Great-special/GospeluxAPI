@@ -7,6 +7,7 @@ from django.shortcuts import redirect, render
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.utils import timezone
+from django.conf import settings
 from .models import User, OTP, Plan, UserPlan
 from .serializers import (
     UserRegistrationSerializer, UserLoginSerializer, OTPVerificationSerializer,
@@ -248,7 +249,7 @@ def sub_payment(request, plan):
     # Placeholder for payment processing logic
     # Integrate with a payment gateway like Stripe or PayPal here
     plan_obj = Plan.objects.get(name=plan)
-    return render(request, 'payment.html', {'stripe_key': settings.STRIPE_PUBLIC_KEY, 'course':course})
+    return render(request, 'payment.html', {'stripe_key': settings.STRIPE_PUBLIC_KEY, 'plan':plan_obj})
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer

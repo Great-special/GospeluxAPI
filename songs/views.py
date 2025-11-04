@@ -1,3 +1,5 @@
+import json
+import re
 import requests
 import logging
 from django.shortcuts import render
@@ -8,13 +10,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Q, Count
 from django.db.models import Prefetch
-from core.generation_utility import generate_song
+from core.generation_utility import generate_song, generate_sermon, model_generator
 from .models import  Song, Playlist, PlaylistSong, Favorite, GeneratedSongs, GeneratedSongsData
 from .serializers import (
     SongSerializer, SongDetailSerializer,
     PlaylistSerializer, AddSongToPlaylistSerializer, FavoriteSerializer, 
     GeneratedSongsSerializer, GeneratedSongsDataSerializer
 )
+from decouple import config
 
 logger = logging.getLogger(__name__)
 
@@ -259,7 +262,6 @@ class GeneratedSongsDetailView(generics.RetrieveAPIView):
         return GeneratedSongsData.objects.filter(generated_song=generated_song).order_by('-created_at')
 
 
-
 class GeneratedSongsCreateView(generics.CreateAPIView):
     serializer_class = GeneratedSongsSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -273,19 +275,30 @@ class GeneratedSongsCreateView(generics.CreateAPIView):
 
         try:
             # Call external music generation utility
+            prompt = f"Generate a short song title for: {bible_verse}"
+            if title is None:
+                res = model_generator(prompt)
+                # Split by number followed by a dot and space
+                parts = re.findall(r'"(.*?)"', res)
+                # Remove any empty strings
+                print(f"Title generation response parts: {parts}")
+                title = parts[1] 
+                print(f"Generated title: {title}")
             response = generate_song(title=title, bible_verse=bible_verse, genre=genre, mood=mood)
+            print(f"From view {response}")
+            if response.get('code') != 200:
+                raise Exception(f"Music generation failed with code {response.get('code')}: {response.get('msg')}")
+          
             task_id = response.get('data').get('taskId')
-
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-
-            # Save the instance with user + custom fields
-            serializer.instance.user = request.user
-            serializer.instance.title = title
-            serializer.instance.status = 'processing'
-            serializer.instance.task_id = task_id
-            serializer.instance.save()
+            # Pass user and other fields into serializer.save()
+            serializer.save(
+                user=request.user,
+                title=title,
+                status='processing',
+                task_id=task_id
+            )
 
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -293,7 +306,7 @@ class GeneratedSongsCreateView(generics.CreateAPIView):
         except Exception as e:
             logger.error(f"Error generating song: {e}")
             return Response(
-                {'error': 'Failed to initiate music generation'},
+                {'error': f'Failed to initiate music generation {e}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

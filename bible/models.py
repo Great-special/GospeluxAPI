@@ -1,5 +1,8 @@
 from django.db import models
 from core.models import BaseModel, Category, Tag
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class BibleVersion(BaseModel):
     """Different Bible versions (KJV, NIV, ESV, etc.)"""
@@ -109,3 +112,21 @@ class Bookmark(BaseModel):
     
     def __str__(self):
         return f"{self.user.email} - {self.verse.reference}"
+
+
+
+
+class Sermon(BaseModel):
+    title = models.CharField(max_length=255)
+    bible_text = models.CharField(max_length=255, help_text="E.g. John 3:16")
+    content = models.TextField()
+    author = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='sermons'
+    )
+    generated_by_ai = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title

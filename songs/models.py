@@ -120,7 +120,7 @@ class Favorite(BaseModel):
 
 class GeneratedSongs(BaseModel):
     """Songs generated using AI"""
-    bible_verse = models.CharField(max_length=100)
+    bible_verse = models.TextField()
     title = models.CharField(max_length=200)
     lyrics = models.TextField()
     genre = models.CharField(max_length=100)

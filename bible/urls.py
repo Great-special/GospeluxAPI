@@ -10,5 +10,6 @@ urlpatterns = [
     path('search/', views.search_verses, name='search-verses'),
     path('plans/', views.ReadingPlanListView.as_view(), name='reading-plan-list'),
     path('plans/<int:pk>/', views.ReadingPlanDetailView.as_view(), name='reading-plan-detail'),
+    path('sermons/', views.SermonListCreateView.as_view(), name='sermon-list-create'),
     
 ]

@@ -1,10 +1,11 @@
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.db.models import Q
-from .models import BibleVersion, Book, Chapter, Verse, ReadingPlan, ReadingPlanDay, Bookmark
+from .models import BibleVersion, Book, Chapter, Verse, ReadingPlan, ReadingPlanDay, Bookmark, Sermon
 from .serializers import (
-    BibleVersionSerializer, BookSerializer, ChapterSerializer, VerseSerializer,
+    BibleVersionSerializer, BookSerializer, ChapterSerializer, VerseSerializer, SermonSerializer,
     VerseDetailSerializer, ReadingPlanSerializer, ReadingPlanDaySerializer, BookmarkSerializer
 )
 from .api_bible import BibleAPI
@@ -212,3 +213,22 @@ class BookmarkDetailView(generics.RetrieveUpdateDestroyAPIView):
     
     def get_queryset(self):
         return Bookmark.objects.filter(user=self.request.user)
+    
+    
+
+class SermonListCreateView(APIView):
+    permission_classes = [permissions.AllowAny]  # Adjust as needed (e.g., IsAuthenticated)
+
+    def get(self, request):
+        """Return a list of all sermons"""
+        sermons = Sermon.objects.all()
+        serializer = SermonSerializer(sermons, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        """Save a new AI-generated sermon"""
+        serializer = SermonSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(author=request.user if request.user.is_authenticated else None)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

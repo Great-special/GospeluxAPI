@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import BibleVersion, Book, Chapter, Verse, ReadingPlan, ReadingPlanDay, Bookmark
+from .models import BibleVersion, Book, Chapter, Verse, ReadingPlan, ReadingPlanDay, Bookmark, Sermon
 
 class BibleVersionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -63,3 +63,16 @@ class BookmarkSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
+
+
+
+class SermonSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source='author.username', read_only=True)
+
+    class Meta:
+        model = Sermon
+        fields = [
+            'id', 'title', 'bible_text', 'content',
+            'author', 'author_name', 'generated_by_ai', 'created_at'
+        ]
+        read_only_fields = ['id', 'author_name', 'created_at']
