@@ -17,10 +17,6 @@ suno_headers = {
 
 
 login(config('HF_API_TOKEN'))
-client = InferenceClient(
-    provider="featherless-ai",
-    api_key=config('HF_API_TOKEN'))
-
 
 
 
@@ -120,6 +116,11 @@ def model_generator(prompt, max_tokens=50, temperature=0.6):
     Send a text prompt to Mistral-7B-Instruct-v0.3 and return the generated response.
     """
     try:
+        client = InferenceClient(
+            provider="featherless-ai",
+            api_key=config('HF_API_TOKEN'))
+
+
         completion = client.chat.completions.create(
             model="mistralai/Mistral-7B-Instruct-v0.2",
             messages=[
