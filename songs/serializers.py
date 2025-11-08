@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Song, Playlist, PlaylistSong, Favorite, GeneratedSongs, GeneratedSongsData
+from .models import Song, Playlist, PlaylistSong, Favorite, Video, GeneratedSongs, GeneratedSongsData, GeneratedVideo
 
 # class ArtistSerializer(serializers.ModelSerializer):
 #     songs_count = serializers.IntegerField(source='songs.count', read_only=True)
@@ -84,3 +84,26 @@ class GeneratedSongsDataSerializer(serializers.ModelSerializer):
         model = GeneratedSongsData
         fields = "__all__"
         read_only_fields = ['created_at']
+        
+
+class GeneratedVideoSerializer(serializers.ModelSerializer):
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = GeneratedVideo
+        fields = ["id", "user", "bible_verse", "title", "video_id", "created_at", "user_email"]
+        read_only_fields = ['created_at', 'user', 'title']
+
+
+class VideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Video
+        fields = ['id', 'title', 'category', 'is_active']
+        read_only_fields = ['created_at']
+
+class VideoDetailSerializer(VideoSerializer):
+    video_file = serializers.FileField(required=False)
+    tags = serializers.StringRelatedField(many=True)
+
+    class Meta(VideoSerializer.Meta):
+        fields = VideoSerializer.Meta.fields + ['video_file', 'tags']

@@ -10,12 +10,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Q, Count
 from django.db.models import Prefetch
-from core.generation_utility import generate_song, generate_sermon, model_generator
+from core.generation_utility import generate_song, model_generator, generate_video, get_video_status
 from .models import  Song, Playlist, PlaylistSong, Favorite, GeneratedSongs, GeneratedSongsData
 from .serializers import (
     SongSerializer, SongDetailSerializer,
     PlaylistSerializer, AddSongToPlaylistSerializer, FavoriteSerializer, 
-    GeneratedSongsSerializer, GeneratedSongsDataSerializer
+    GeneratedSongsSerializer, GeneratedSongsDataSerializer,
+    GeneratedVideoSerializer, VideoSerializer, VideoDetailSerializer
 )
 from decouple import config
 
@@ -310,10 +311,7 @@ class GeneratedSongsCreateView(generics.CreateAPIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        
-    
-   
-    
+
 def update_generated_song_status(task_id, status, data_id, duration, prompt=None, audio_file_url=None, audio_file=None):
     try:
         generated_song = GeneratedSongs.objects.get(task_id=task_id)
@@ -384,3 +382,49 @@ def handle_callback(request):
             logger.error("Server internal error")
 
     return Response({'message': 'Callback processed successfully'})
+
+
+class GeneratedVideoCreateView(generics.CreateAPIView):
+    serializer_class = GeneratedVideoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        title = request.data.get('title', None)
+        bible_verse = request.data.get('bible_verse', '')
+        video_style = request.data.get('video_style', 'inspirational')
+        try:
+            # Call external music generation utility
+            prompt = f"Generate a short song title for: {bible_verse}"
+            if title is None:
+                res = model_generator(prompt)
+                # Split by number followed by a dot and space
+                parts = re.findall(r'"(.*?)"', res)
+                # Remove any empty strings
+                print(f"Title generation response parts: {parts}")
+                title = parts[1] 
+                print(f"Generated title: {title}")
+            response = generate_video(verse=bible_verse, video_style=video_style)
+            print(f"From view {response}")
+            if response.get('code') != 200:
+                raise Exception(f"Video generation failed with code {response.get('code')}: {response.get('msg')}")
+          
+            video_id = response.get('data').get('video_id')
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            # Pass user and other fields into serializer.save()
+            serializer.save(
+                user=request.user,
+                title=title,
+                status='processing',
+                video_id=video_id
+            )
+
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+        except Exception as e:
+            logger.error(f"Error generating video: {e}")
+            return Response(
+                {'error': f'Failed to initiate video generation {e}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

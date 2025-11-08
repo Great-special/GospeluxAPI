@@ -152,3 +152,38 @@ class GeneratedSongsData(BaseModel):
     
     def __str__(self):
         return f"Data for {self.generated_song.title} - {self.generated_song.user.get_full_name() or self.generated_song.user.username}"
+
+
+class Video(BaseModel):
+    """Individual songs"""
+    title = models.CharField(max_length=200)
+    video_file = models.FileField(upload_to='songs/video/', blank=True, null=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    tags = models.ManyToManyField(Tag, blank=True)
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        ordering = ['title']
+    
+    def __str__(self):
+        return f"{self.title} - {self.artist}"
+
+
+class GeneratedVideo(BaseModel):
+    """Songs generated using AI"""
+    bible_verse = models.TextField()
+    title = models.CharField(max_length=200)
+    video_file = models.FileField(upload_to='generated_songs/videos/', blank=True, null=True)
+    status = models.CharField(max_length=20, choices=(
+        ('processing', 'Processing'), 
+        ('completed', 'Completed'), 
+        ('failed', 'Failed')), default='processing')
+    video_id = models.CharField(max_length=100, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='generated_videos')
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Generated: {self.title} - {self.user.get_full_name() or self.user.username}"
+    

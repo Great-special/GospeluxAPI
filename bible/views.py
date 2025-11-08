@@ -10,6 +10,7 @@ from .serializers import (
 )
 from .api_bible import BibleAPI
 from decouple import config
+from core.generation_utility import generate_sermon
 
 bible_api = BibleAPI(config('bible_api_key', default=''))
 
@@ -227,7 +228,21 @@ class SermonListCreateView(APIView):
 
     def post(self, request):
         """Save a new AI-generated sermon"""
-        serializer = SermonSerializer(data=request.data)
+        data = request.data
+        bible_verse = data.get('bible_verse', '')
+        generated_content = generate_sermon(bible_verse)
+        
+        # Extract title line
+        for line in generated_content.splitlines():
+            if line.strip().startswith("Title:"):
+                title = line.split("Title:", 1)[1].strip().strip('"')
+                break
+        if title:
+            data['title'] = title
+        else:
+            data['title'] = "AI Generated Sermon"
+        data.update({'content': generated_content, 'generated_by_ai': True, 'bible_text': bible_verse})
+        serializer = SermonSerializer(data=data)
         if serializer.is_valid():
             serializer.save(author=request.user if request.user.is_authenticated else None)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

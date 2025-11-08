@@ -1,5 +1,6 @@
 import requests
 import re
+import json
 from huggingface_hub import InferenceClient, login
 from decouple import config
 
@@ -111,7 +112,7 @@ bible_verse = 'For I known the plans I have for you, says the Lord. They are pla
 # print(song)
 
 
-def model_generator(prompt, max_tokens=50, temperature=0.6):
+def model_generator(prompt, max_tokens=50, temperature=0.8):
     """
     Send a text prompt to Mistral-7B-Instruct-v0.3 and return the generated response.
     """
@@ -140,6 +141,14 @@ def model_generator(prompt, max_tokens=50, temperature=0.6):
 
 
 def generate_song(bible_verse, title=None, genre='gospel', mood='uplifting', song_length_style='medium song with 2'):
+    
+    API_KEY = config('SUNO_API_KEY')
+    BASE_URL = "https://api.sunoapi.org/api/v1"
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
     if mood not in ('uplifting', 'reflective', 'joyful', 'somber'):
         raise ValueError("Invalid mood. Choose from 'uplifting', 'reflective', 'joyful', 'somber'.")
     
@@ -149,7 +158,7 @@ def generate_song(bible_verse, title=None, genre='gospel', mood='uplifting', son
     if genre not in ('worship', 'classical', 'gospel', 'contemporary christian', 'hymn', 'pop', 'rock', 'afrobeat'):
         raise ValueError("Invalid genre. Choose from 'worship', 'gospel', 'contemporary Christian', 'hymn'.")
     
-    url = f"{SUNO_BASE_URL}/generate"
+    url = f"{BASE_URL}/generate"
     prompt_template = f"""You are a professional Christian songwriter. 
         Create a {genre} song based on {bible_verse}. The song should have a {mood} tone. Structure it as {song_length_style} verses, a repeating chorus, and a bridge. 
         Keep the lyrics faithful to the message of the verse while making it musically engaging and emotionally impactful. 
@@ -166,7 +175,7 @@ def generate_song(bible_verse, title=None, genre='gospel', mood='uplifting', son
         "callBackUrl": "https://gospelux.com/api/v1/songs/generated-music-callback/"
     }
 
-    response = requests.post(url, headers=suno_headers, json=payload)
+    response = requests.post(url, headers=headers, json=payload)
     if response.status_code == 200:
         return response.json()
     else:
@@ -174,15 +183,20 @@ def generate_song(bible_verse, title=None, genre='gospel', mood='uplifting', son
         return response
 
 
-def generate_sermon(self, bible_verse, length_points=5):
-        """Generate a song title based on a Bible verse using a text generation model."""
+def generate_sermon(bible_verse, length_points=5):
+    """Generate a song title based on a Bible verse using a text generation model."""
 
-        prompt = f"""Generate a full sermon outline from {bible_verse}.
-        Include: a captivating title, a clear objective, an introduction, 
-        {length_points} main points with 1 or 2 sub-points (explanation, illustration, application, and supporting Scriptures), an application section, and a conclusion. 
-        Make it inspirational and practical for teaching and preaching."""
-        titles = model_generator(prompt, max_new_tokens=1000)
+    prompt = f"""Generate a full sermon outline from {bible_verse}.
+    Include: a captivating title, a clear objective, an introduction, 
+    {length_points} main points with 1 or 2 sub-points (explanation, illustration, application, and supporting Scriptures), an application section, and a conclusion. 
+    Make it inspirational and practical for teaching and preaching."""
+    titles = model_generator(prompt, max_tokens=3000)
+    print(titles)
+    try:
         return titles[0]['generated_text'].strip()
+    except Exception:
+        return titles.strip()
+
 
 def generate_video(verse, video_style='bibilical', length_seconds=60):
     prompt = f"""You are a professional video scriptwriter. 
@@ -200,3 +214,105 @@ def generate_video(verse, video_style='bibilical', length_seconds=60):
     )
     
     return video
+
+def generate_heygen_video(verse: str, video_style: str ='bibilical', length_seconds: int = 60, voice: int = 1, avatar: int = 1):
+    """
+    Sends a request to the HeyGen API to generate a video with a specified
+    avatar, voice, and script.
+
+    Args:
+        verse (str): The Bible verse or topic to base the video script on.
+        video_style (str): The style of the video (default is 'bibilical').
+        length_seconds (int): The desired length of the video in seconds (default is 60).
+        voice (int): The voice ID to use for the video narration (default is 1).
+        avatar (int): The avatar ID to use for the video character (default is 1).
+        
+
+    Returns:
+        The JSON response from the HeyGen API, containing the video ID and status.
+    """
+    voices = {
+        1:"2d5b0e6cf36f460aa7fc47e3eee4ba54",
+    }
+    
+    avatars = {
+        1:"Daisy-inskirt-20220818",
+    }
+    
+    url = "https://api.heygen.com/v2/video/generate"
+    api_key = config('HEYGEN_API_KEY')
+    headers = {
+        'X-Api-Key': api_key,
+        'Content-Type': 'application/json'
+    }
+    
+    prompt = f"""You are a professional video scriptwriter. 
+        Create a {length_seconds}-second {video_style} video script based on the following topic: {verse}. 
+        Ensure the script is engaging, concise, and suitable for a short video format."""
+    video_scripts = model_generator(prompt, max_tokens=500)
+
+    payload = {
+        "video_inputs": [
+            {
+                "character": {
+                    "type": "avatar",
+                    "avatar_id": avatars.get(avatar, "Daisy-inskirt-20220818"),
+                    "avatar_style": "normal"
+                },
+                "voice": {
+                    "type": "text",
+                    "input_text": video_scripts,  # Uses the dynamic script text
+                    "voice_id":  voices.get(voice, "2d5b0e6cf36f460aa7fc47e3eee4ba54"),
+                },
+                "background": {
+                    "type": "color",
+                    "value": "#008000"
+                }
+            }
+        ],
+        "dimension": {
+            "width": 1280,
+            "height": 720
+        }
+    }
+
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+        return None
+
+
+def get_video_status(video_id: str):
+    API_KEY = config('HEYGEN_API_KEY')
+
+    # The base URL for the HeyGen API
+    base_url = "https://api.heygen.com/v1/video_status.get"
+
+    # The parameters to be passed in the URL (query string)
+    params = {
+        'video_id': video_id
+    }
+
+    # The custom headers, including the X-Api-Key
+    headers = {
+        'X-Api-Key': API_KEY
+    }
+
+    try:
+        # Make the GET request
+        response = requests.get(base_url, headers=headers, params=params)
+
+        # Check for a successful response (status code 200)
+        response.raise_for_status() 
+
+        # Print the JSON response content
+        print("Status Code:", response.status_code)
+        print("Response JSON:")
+        print(response.json())
+        return response.json()
+    except requests.exceptions.RequestException as err:
+        print(f"An unexpected error occurred: {err}")
+        return f"An unexpected error occurred: {err}"

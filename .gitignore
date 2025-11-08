@@ -32,4 +32,3 @@ staticfiles/
 .env
 
 *.zip
-*.tar.gz
