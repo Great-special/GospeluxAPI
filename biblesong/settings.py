@@ -60,6 +60,8 @@ INSTALLED_APPS = [
     'songs.apps.SongsConfig',
     'users.apps.UsersConfig',
     
+    'drf_spectacular',
+    
 ]
 
 SITE_ID = 2
@@ -174,6 +176,7 @@ else:
     # SharedHosting Static Directory
     # STATIC_ROOT = '/home/gospqyhq/public_html/staticfiles/'
     STATIC_ROOT = '/home/gospqyhq/Gospelux/staticfiles/'
+    MEDIA_ROOT = '/home/gospqyhq/public_html/media/'
 
 
 # STATICFILES_DIRS = [
@@ -200,7 +203,8 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20
+    'PAGE_SIZE': 20,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 
@@ -211,6 +215,15 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
+}
+
+# DRF Spectacular Configuration
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Gospelux API',
+    'DESCRIPTION': 'Gospelux is a app that helps you convert your bible verses to music or video.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # OTHER SETTINGS
 }
 
 # Email Configuration
@@ -234,6 +247,7 @@ CELERY_TIMEZONE = TIME_ZONE
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "http://localhost:60694",
 ]
 
 CORS_ALLOW_CREDENTIALS = True

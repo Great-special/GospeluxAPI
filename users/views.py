@@ -22,23 +22,43 @@ User = get_user_model()
 @permission_classes([AllowAny])
 def register(request):
     print(request.data, type(request.data))
-    serializer = UserRegistrationSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.save()
+    try:
+        serializer = UserRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            # Check if user already exists before saving
+            email = serializer.validated_data.get('email')
+            username = serializer.validated_data.get('username')
+            if User.objects.filter(email=email).exists():
+                return Response({
+                    'error': 'A user with this email already exists.',
+                    'email': ['This email is already registered.']
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            if User.objects.filter(username=username).exists():
+                return Response({
+                    'error': 'A user with this username already exists.',
+                    'username': ['This username is already taken.']
+                }, status=status.HTTP_400_BAD_REQUEST)
+            user = serializer.save()
+            try:
+                # Create and send OTP for email verification
+                otp = OTP.objects.create(
+                    user=user,
+                    otp_type='email_verification'
+                )
+                # send_otp_email(user.email, otp.otp_code, 'email_verification')
+            except Exception as e:
+                print(f"Error creating/sending OTP: {str(e)}")
+                
+            return Response({
+                'message': 'User registered successfully. Please check your email for verification code.',
+                'user_id': user.id
+            }, status=status.HTTP_201_CREATED)
         
-        # Create and send OTP for email verification
-        otp = OTP.objects.create(
-            user=user,
-            otp_type='email_verification'
-        )
-        send_otp_email(user.email, otp.otp_code, 'email_verification')
-        
-        return Response({
-            'message': 'User registered successfully. Please check your email for verification code.',
-            'user_id': user.id
-        }, status=status.HTTP_201_CREATED)
-    
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])

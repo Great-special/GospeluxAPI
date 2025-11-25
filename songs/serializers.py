@@ -75,8 +75,8 @@ class GeneratedSongsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GeneratedSongs
-        fields = ["id", "user", "bible_verse", "title", "genre", "created_at", "user_email"]
-        read_only_fields = ['created_at', 'user', 'title']
+        fields = ["id", 'task_id', 'status', "user", "bible_verse", "title", "genre", "created_at", "user_email"]
+        read_only_fields = ['created_at', 'user', 'title', 'task_id', 'status']
 
 
 class GeneratedSongsDataSerializer(serializers.ModelSerializer):

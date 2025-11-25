@@ -21,6 +21,11 @@ urlpatterns = [
     path('generated/list/', views.GeneratedSongsListView.as_view(), name='generated_songs'),
     path('generate/', views.GeneratedSongsCreateView.as_view(), name='generate_songs'),
     path('generated/<uuid:pk>/', views.GeneratedSongsDetailView.as_view(), name='generated_songs_detail'),
-    
     path('generated-music-callback/', views.handle_callback, name='generate_music_callback'),
+    
+    path('generate-video/', views.GeneratedVideoCreateView.as_view(), name='generate_video'),
+    path('generated-videos/list/', views.GeneratedVideosListView.as_view(), name='generated_videos'),
+    path('generated-videos/<uuid:pk>/', views.GeneratedVideoDetailView.as_view(), name='generated_video_detail'),
+    
+    path('get-video-status/', views.get_video_status_view, name='get_video_status'),
 ]

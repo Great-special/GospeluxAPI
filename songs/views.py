@@ -10,8 +10,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Q, Count
 from django.db.models import Prefetch
+from django.views.decorators.csrf import csrf_exempt
 from core.generation_utility import generate_song, model_generator, generate_video, get_video_status
-from .models import  Song, Playlist, PlaylistSong, Favorite, GeneratedSongs, GeneratedSongsData
+from core.heygen import HeyGenVideoCreator, select_voice_for_scene, select_avatar_for_scene
+from .models import  Song, Playlist, PlaylistSong, Favorite, GeneratedSongs, GeneratedSongsData, GeneratedVideo
 from .serializers import (
     SongSerializer, SongDetailSerializer,
     PlaylistSerializer, AddSongToPlaylistSerializer, FavoriteSerializer, 
@@ -21,6 +23,7 @@ from .serializers import (
 from decouple import config
 
 logger = logging.getLogger(__name__)
+client = HeyGenVideoCreator(config("HeyGen_API_KEY"))
 
 # class ArtistListView(generics.ListAPIView):
 #     queryset = Artist.objects.filter(is_active=True).annotate(songs_count=Count('songs'))
@@ -281,14 +284,13 @@ class GeneratedSongsCreateView(generics.CreateAPIView):
                 res = model_generator(prompt)
                 # Split by number followed by a dot and space
                 parts = re.findall(r'"(.*?)"', res)
-                # Remove any empty strings
-                print(f"Title generation response parts: {parts}")
-                title = parts[1] 
-                print(f"Generated title: {title}")
+                if len(parts) >= 2:
+                    title = parts[1]
+                else:
+                    title = parts[0]
             response = generate_song(title=title, bible_verse=bible_verse, genre=genre, mood=mood)
-            print(f"From view {response}")
             if response.get('code') != 200:
-                raise Exception(f"Music generation failed with code {response.get('code')}: {response.get('msg')}")
+                raise Exception(f"[SUNO] Music generation failed with code {response.get('code')}: {response.get('msg')}")
           
             task_id = response.get('data').get('taskId')
             serializer = self.get_serializer(data=request.data)
@@ -312,76 +314,110 @@ class GeneratedSongsCreateView(generics.CreateAPIView):
             )
 
 
-def update_generated_song_status(task_id, status, data_id, duration, prompt=None, audio_file_url=None, audio_file=None):
+def update_generated_song_status(task_id, status, data_id=None, duration=None, prompt=None, audio_file_url=None, audio_file=None):
     try:
         generated_song = GeneratedSongs.objects.get(task_id=task_id)
         generated_song.status = status
+
         if prompt:
-            generated_song.lyrics = prompt  # Update lyrics if provided
+            generated_song.lyrics = prompt
+
         generated_song.save()
-        
-        if audio_file_url and data_id and duration:
-            # Save the audio file URL in GeneratedSongsData
-            GeneratedSongsData.objects.create(generated_song=generated_song, data_id=data_id, duration=duration, audio_file_url=audio_file_url, audio_file=audio_file)
-        
-        logger.info(f"Updated GeneratedSongs {task_id} to status {status}")
+
+        # store audio metadata only if available
+        if audio_file_url:
+            GeneratedSongsData.objects.create(
+                generated_song=generated_song,
+                data_id=data_id,
+                duration=duration,
+                audio_file_url=audio_file_url,
+                audio_file=audio_file
+            )
+
+        logger.info(f"Updated song {task_id} → status={status}")
+
     except GeneratedSongs.DoesNotExist:
         logger.error(f"GeneratedSongs with task_id {task_id} does not exist")
 
 
-
-
-@api_view(['POST'])
+@csrf_exempt
+@api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 def handle_callback(request):
-    data = request.data
+    try:
+        data = request.data
 
-    code = data.get('code')
-    msg = data.get('msg', '')
-    callback_data = data.get('data') or {}
-    task_id = callback_data.get('task_id')
-    callback_type = callback_data.get('callbackType')
-    music_data = callback_data.get('data') or []
+        code = data.get("code")
+        msg = data.get("msg", "")
+        try:
+            callback_data = data.get("data")
+        except Exception:
+            callback_data = {}
 
-    logger.info(f"Received callback: task={task_id}, type={callback_type}, code={code}, msg={msg}")
+        # Normalize task id
+        task_id = callback_data.get("task_id")
+        callback_type = callback_data.get("callbackType")
+        try:
+            tracks = callback_data.get("data")
+        except Exception:
+            tracks = [] 
 
-    if code == 200:
-        logger.info(f"Music generation completed for task {task_id} with {len(music_data)} tracks")
+        logger.info(f"[SUNO CALLBACK] task={task_id}, code={code}, type={callback_type}, msg={msg}")
 
-        for i, music in enumerate(music_data, start=1):
-            data_id = music.get('id')
-            title = music.get('title')
-            duration = music.get('duration')
-            tags = music.get('tags')
-            audio_url = music.get('audio_url')
-            cover_url = music.get('image_url')
+        if not task_id:
+            logger.error("Callback missing taskId")
+            return Response({"error": "taskId missing"}, status=400)
 
-            logger.info(f"Track {i}: {title}, {duration}s, tags={tags}, audio={audio_url}, cover={cover_url}")
+        # ---- SUCCESS -------------------------------------------------------
+        if code == 200:
+            logger.info(f"Suno task {task_id} completed. Tracks: {len(tracks)}")
 
-            # Example audio download (better: use Celery task instead of direct download here)
-            if audio_url:
-                try:
-                    response = requests.get(audio_url, timeout=30)
-                    response.raise_for_status()
-                    filename = f"generated_music_{task_id}_{title}_{i}.mp3"
-                    with open(filename, "wb") as f:
-                        f.write(response.content)
-                        update_generated_song_status(task_id, 'completed', data_id=data_id, duration=duration, audio_file_url=audio_url)
-                    logger.info(f"Saved audio to {filename}")
-                except Exception as e:
-                    logger.error(f"Failed to download audio: {e}")
+            for index, track in enumerate(tracks, start=1):
+                data_id = track.get("id")
+                title = track.get("title") or f"Track {index}"
+                duration = track.get("duration")
+                audio_url = track.get("audio_url")
 
-    else:
-        logger.warning(f"Music generation failed for task {task_id}, code={code}, msg={msg}")
+                logger.info(f"Track {index}: title={title}, duration={duration}, audio={audio_url}")
 
-        if code == 400:
-            logger.error("Parameter error or content violation")
-        elif code == 451:
-            logger.error("File download failed")
-        elif code == 500:
-            logger.error("Server internal error")
+                if audio_url:
+                    try:
+                        # Download the audio file
+                        resp = requests.get(audio_url, timeout=30)
+                        resp.raise_for_status()
 
-    return Response({'message': 'Callback processed successfully'})
+                        # Sanitize filename
+                        safe_title = re.sub(r'[^a-zA-Z0-9_\- ]', "", title)
+                        filename = f"suno_{task_id}_{safe_title}_{index}.mp3"
+
+                        with open(filename, "wb") as f:
+                            f.write(resp.content)
+
+                        logger.info(f"Audio saved: {filename}")
+
+                        # Update DB
+                        update_generated_song_status(
+                            task_id=task_id,
+                            status="completed",
+                            data_id=data_id,
+                            duration=duration,
+                            audio_file_url=audio_url,
+                        )
+
+                    except Exception as e:
+                        logger.error(f"Audio download failed for task {task_id}: {str(e)}")
+
+        # ---- FAILURE -------------------------------------------------------
+        else:
+            logger.warning(f"Suno generation failed: code={code}, msg={msg}")
+            update_generated_song_status(task_id, status="failed")
+
+        return Response({"message": "Callback processed successfully"})
+
+    except Exception as e:
+        logger.error(f"Callback processing error: {str(e)}", exc_info=True)
+        return Response({"error": "Internal server error"}, status=500)
+
 
 
 class GeneratedVideoCreateView(generics.CreateAPIView):
@@ -392,6 +428,10 @@ class GeneratedVideoCreateView(generics.CreateAPIView):
         title = request.data.get('title', None)
         bible_verse = request.data.get('bible_verse', '')
         video_style = request.data.get('video_style', 'inspirational')
+        length = request.data.get('video_length', '3')
+        if length.isdigit():
+            length = int(length) * 60
+            length_seconds = min(length, 180)
         try:
             # Call external music generation utility
             prompt = f"Generate a short song title for: {bible_verse}"
@@ -399,15 +439,78 @@ class GeneratedVideoCreateView(generics.CreateAPIView):
                 res = model_generator(prompt)
                 # Split by number followed by a dot and space
                 parts = re.findall(r'"(.*?)"', res)
-                # Remove any empty strings
-                print(f"Title generation response parts: {parts}")
-                title = parts[1] 
-                print(f"Generated title: {title}")
-            response = generate_video(verse=bible_verse, video_style=video_style)
-            print(f"From view {response}")
-            if response.get('code') != 200:
-                raise Exception(f"Video generation failed with code {response.get('code')}: {response.get('msg')}")
-          
+                if len(parts) >= 2:
+                    title = parts[1]
+                else:
+                    title = parts[0]
+            #------------------ here will be removed in favour of the heygen sdk-------------
+            # response = generate_video(verse=bible_verse, video_style=video_style)
+            # print(f"From view {response}")
+            # if response.get('code') != 200:
+            #     raise Exception(f"Video generation failed with code {response.get('code')}: {response.get('msg')}")
+            
+            # -------------- Here is the heygen  sdk use case ---------------------
+            # prompt = f"""You are a professional video scriptwriter. 
+            #     Create a {length_seconds}-second {video_style} video script based on the following topic: {verse}. 
+            #     Ensure the script is engaging, concise, and suitable for a short video format."""
+            # video_scripts = model_generator(prompt, max_tokens=500)
+            
+            script_prompt = """
+                You are a professional scriptwriter for inspirational Bible-based videos.
+
+                Write a multi-scene script for the topic: "{}"
+                Video style: {}
+                Duration: {} seconds.
+
+                Use ONLY these speaker types:
+                - "presenter"
+                - "male"
+                - "female"
+                - "god"
+                - "angel"
+
+                Return ONLY valid JSON with this structure:
+
+                {{
+                "scenes": [
+                    {{
+                    "speaker_type": "presenter | male | female | god | angel",
+                    "text": "What this speaker says in the scene."
+                    }}
+                ]
+                }}
+
+                Rules:
+                - Use 4–8 scenes.
+                - 1–2 sentences per scene.
+                - Speaker type MUST be one of the allowed values.
+                - DO NOT include explanations or commentary — only JSON.
+            """.format(bible_verse, video_style, length_seconds)
+
+
+            script_raw = model_generator(script_prompt, max_tokens=500)
+            
+            try:
+                script = json.loads(script_raw.strip())
+                scenes = script["scenes"]
+            except Exception as e:
+                raise Exception(f"Generated script is not valid JSON: {e}")
+            
+            voices = client.get_voices_list()
+            avatars = client.get_avatars_list()
+            for scene in scenes:
+                speaker_type = scene.get("speaker_type", "presenter")
+
+                scene["voice_id"] = select_voice_for_scene(speaker_type, voices)
+                scene["avatar_id"] = select_avatar_for_scene(speaker_type, avatars)
+                
+                if "background_color" not in scene:
+                    scene["background_color"] = "#FCDCBE"
+
+            response = client.create_multi_scene_video(
+                title=title,
+                scenes=scenes)
+
             video_id = response.get('data').get('video_id')
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
@@ -428,3 +531,36 @@ class GeneratedVideoCreateView(generics.CreateAPIView):
                 {'error': f'Failed to initiate video generation {e}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class GeneratedVideosListView(generics.ListAPIView):
+    serializer_class = VideoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return GeneratedVideo.objects.filter(user=self.request.user).order_by('-created_at')
+
+
+class GeneratedVideoDetailView(generics.RetrieveAPIView):
+    serializer_class = VideoDetailSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return GeneratedVideo.objects.filter(user=self.request.user).order_by('-created_at')
+
+
+
+@api_view(['GET'])
+def get_video_status_view(request):
+    try:
+        video_id = request.GET.get('video_id')
+        if not video_id:
+            return Response({'error': 'video_id parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+        video_status = client.get_video_status(video_id)
+        return Response(video_status, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error fetching video status: {e}")
+        return Response(
+            {'error': 'Failed to fetch video status'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

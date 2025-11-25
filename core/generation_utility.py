@@ -5,11 +5,9 @@ from huggingface_hub import InferenceClient, login
 from decouple import config
 
 
-
 SUNO_API_KEY = config('SUNO_API_KEY')
 SUNO_BASE_URL = "https://api.sunoapi.org/api/v1"
 
-print(f"Suno api key:{SUNO_API_KEY}")
 
 suno_headers = {
     "Authorization": f"Bearer {SUNO_API_KEY}",
@@ -143,6 +141,7 @@ def model_generator(prompt, max_tokens=50, temperature=0.8):
 def generate_song(bible_verse, title=None, genre='gospel', mood='uplifting', song_length_style='medium song with 2'):
     
     API_KEY = config('SUNO_API_KEY')
+    print(API_KEY)
     BASE_URL = "https://api.sunoapi.org/api/v1"
     headers = {
         "Authorization": f"Bearer {API_KEY}",
@@ -191,7 +190,6 @@ def generate_sermon(bible_verse, length_points=5):
     {length_points} main points with 1 or 2 sub-points (explanation, illustration, application, and supporting Scriptures), an application section, and a conclusion. 
     Make it inspirational and practical for teaching and preaching."""
     titles = model_generator(prompt, max_tokens=3000)
-    print(titles)
     try:
         return titles[0]['generated_text'].strip()
     except Exception:
@@ -240,7 +238,7 @@ def generate_heygen_video(verse: str, video_style: str ='bibilical', length_seco
     }
     
     url = "https://api.heygen.com/v2/video/generate"
-    api_key = config('HEYGEN_API_KEY')
+    api_key = config('HeyGen_API_KEY')
     headers = {
         'X-Api-Key': api_key,
         'Content-Type': 'application/json'

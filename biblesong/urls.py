@@ -18,7 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView
+)
 
 admin.site.site_header = 'Gospelux Portal'
 admin.site.site_title = 'Gospelux Portal'
@@ -33,6 +37,12 @@ urlpatterns = [
     path('api/v1/bible/', include('bible.urls')),  # Bible app for Bible-related APIs
     path('api/v1/songs/', include('songs.urls')),  # Songs app for song-related APIs
     path('api/v1/users/', include('users.urls')),  # Users app for user-related APIs
+    # Schema
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    # Swagger UI
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    # Redoc UI
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     
 ]
 
