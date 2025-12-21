@@ -396,13 +396,13 @@ class HeyGenVideoCreator:
         """
         elapsed_time = 0
         
-        print(f"Waiting for video {video_id} to complete...")
+        # print(f"Waiting for video {video_id} to complete...")
         
         while elapsed_time < max_wait_time:
             status_response = self.get_video_status(video_id)
             
             if status_response.get("error"):
-                print(f"Error: {status_response['error']}")
+                # print(f"Error: {status_response['error']}")
                 return status_response
             
             data = status_response.get("data", {})

@@ -95,6 +95,11 @@ class GeneratedVideoSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'user', 'title']
 
 
+class GeneratedVideoDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GeneratedVideo
+        fields = "__all__"
+
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video

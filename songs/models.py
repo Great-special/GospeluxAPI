@@ -143,7 +143,7 @@ class GeneratedSongs(BaseModel):
 class GeneratedSongsData(BaseModel):
     """Data related to generated songs, e.g., audio file URLs"""
     generated_song = models.ForeignKey(GeneratedSongs, on_delete=models.CASCADE, related_name='data')
-    audio_file_url = models.URLField()
+    audio_file_url = models.URLField(max_length=500, blank=True, null=True)
     audio_file = models.FileField(upload_to='generated_songs/audio/', blank=True, null=True)
     data_id = models.CharField(max_length=100, blank=True, null=True)
     duration = models.DurationField(blank=True, null=True)
@@ -172,14 +172,16 @@ class Video(BaseModel):
 class GeneratedVideo(BaseModel):
     """Songs generated using AI"""
     bible_verse = models.TextField()
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, blank=True, null=True)
     video_file = models.FileField(upload_to='generated_songs/videos/', blank=True, null=True)
     status = models.CharField(max_length=20, choices=(
         ('processing', 'Processing'), 
         ('completed', 'Completed'), 
-        ('failed', 'Failed')), default='processing')
+        ('failed', 'Failed'),
+        ('queued', 'Queued')), default='processing')
     video_id = models.CharField(max_length=100, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='generated_videos')
+    error_message = models.TextField(blank=True, null=True)
     
     class Meta:
         ordering = ['-created_at']

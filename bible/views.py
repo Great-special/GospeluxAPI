@@ -222,7 +222,14 @@ class SermonListCreateView(APIView):
 
     def get(self, request):
         """Return a list of all sermons"""
-        sermons = Sermon.objects.all()
+        user = request.user
+        # Use query_params for GET requests
+        sermon_id = request.query_params.get('sermon_id')
+        if sermon_id:
+            sermon = Sermon.objects.get(id=sermon_id, author=user)
+            return Response(SermonSerializer(sermon).data)
+        
+        sermons = Sermon.objects.filter(author=user)
         serializer = SermonSerializer(sermons, many=True)
         return Response(serializer.data)
 

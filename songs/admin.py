@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import  Song, Playlist, PlaylistSong, Favorite, GeneratedSongs, Video, GeneratedVideo
+from .models import  Song, Playlist, PlaylistSong, Favorite, GeneratedSongs, GeneratedSongsData, Video, GeneratedVideo
 
 # @admin.register(Artist)
 # class ArtistAdmin(admin.ModelAdmin):
@@ -78,7 +78,12 @@ class GeneratedSongsAdmin(admin.ModelAdmin):
     search_fields = ('title', 'user__email')
     ordering = ('-created_at',)
     
-    
+@admin.register(GeneratedSongsData)
+class GeneratedSongsDataAdmin(admin.ModelAdmin):
+    list_display = ('generated_song', 'duration', 'created_at')
+    list_filter = ('data_id', 'duration', 'created_at')
+    search_fields = ('generated_song__title', 'generated_song__user__email')
+    ordering = ('-created_at',)    
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):

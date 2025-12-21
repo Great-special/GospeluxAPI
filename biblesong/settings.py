@@ -15,6 +15,7 @@ from pathlib import Path
 from decouple import config
 from datetime import timedelta
 
+environment = config('ENV', default='production')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +28,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-#ztoyw&k3yli@r=)9fn!^d48e^ye!kypgxajh-k9jn-3r2rzd$'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if environment == 'development':
+    DEBUG = True
+else:
+    DEBUG = False
+
 
 ALLOWED_HOSTS = ['*',]
 
@@ -105,7 +110,7 @@ WSGI_APPLICATION = 'biblesong.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-environment = config('ENV', default='production')
+
 
 if environment == 'development':
 
@@ -201,6 +206,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+        'core.permissions.AllowOptionsPermission',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -244,16 +250,31 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost:60694",
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://localhost:\d+$",
+    r"^http://127\.0\.0\.1:\d+$",
+    r"^https://gospelux\.com$",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
+CORS_ALLOW_HEADERS = [
+    "authorization",
+    "content-type",
+    "accept",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "https://gospelux.com",
+]
+
 # OTP Configuration
-OTP_EXPIRY_MINUTES = 10
+OTP_EXPIRY_MINUTES = 30
 
 # Django Allauth Configuration
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*']

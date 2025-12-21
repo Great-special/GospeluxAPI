@@ -2,6 +2,7 @@ import json
 import re
 import requests
 import logging
+import threading
 from django.shortcuts import render
 
 # Create your views here.
@@ -18,7 +19,7 @@ from .serializers import (
     SongSerializer, SongDetailSerializer,
     PlaylistSerializer, AddSongToPlaylistSerializer, FavoriteSerializer, 
     GeneratedSongsSerializer, GeneratedSongsDataSerializer,
-    GeneratedVideoSerializer, VideoSerializer, VideoDetailSerializer
+    GeneratedVideoSerializer, VideoSerializer, VideoDetailSerializer, GeneratedVideoDetailSerializer
 )
 from decouple import config
 
@@ -324,15 +325,22 @@ def update_generated_song_status(task_id, status, data_id=None, duration=None, p
 
         generated_song.save()
 
-        # store audio metadata only if available
+       # Store audio metadata only if available
         if audio_file_url:
-            GeneratedSongsData.objects.create(
+            song_data = GeneratedSongsData.objects.create(
                 generated_song=generated_song,
                 data_id=data_id,
                 duration=duration,
                 audio_file_url=audio_file_url,
-                audio_file=audio_file
             )
+
+            # 🔥 CORRECT way to save ContentFile
+            if audio_file:
+                song_data.audio_file.save(
+                    audio_file.name,
+                    audio_file,
+                    save=True
+                )
 
         logger.info(f"Updated song {task_id} → status={status}")
 
@@ -344,6 +352,7 @@ def update_generated_song_status(task_id, status, data_id=None, duration=None, p
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 def handle_callback(request):
+    from django.core.files.base import ContentFile
     try:
         data = request.data
 
@@ -390,9 +399,7 @@ def handle_callback(request):
                         safe_title = re.sub(r'[^a-zA-Z0-9_\- ]', "", title)
                         filename = f"suno_{task_id}_{safe_title}_{index}.mp3"
 
-                        with open(filename, "wb") as f:
-                            f.write(resp.content)
-
+                        
                         logger.info(f"Audio saved: {filename}")
 
                         # Update DB
@@ -402,6 +409,7 @@ def handle_callback(request):
                             data_id=data_id,
                             duration=duration,
                             audio_file_url=audio_url,
+                            audio_file=ContentFile(resp.content, name=filename)
                         )
 
                     except Exception as e:
@@ -419,122 +427,155 @@ def handle_callback(request):
         return Response({"error": "Internal server error"}, status=500)
 
 
+def extract_json_from_response(response_text):
+    """
+    Extract JSON from LLM response that might contain markdown or extra text.
+    """
+    if not response_text:
+        raise ValueError("Empty response text")
+    
+    # Remove all whitespace at beginning/end
+    response_text = response_text.strip()
+    
+    # Remove markdown code blocks and language specifiers
+    response_text = re.sub(r'```(?:json)?\s*', '', response_text)
+    response_text = re.sub(r'```\s*', '', response_text)
+    
+    # Try multiple strategies to extract JSON
+    
+    # Strategy 1: Find JSON object/array patterns
+    json_patterns = [
+        r'\{[\s\S]*\}',  # JSON object
+        r'\[[\s\S]*\]',  # JSON array
+    ]
+    
+    for pattern in json_patterns:
+        json_match = re.search(pattern, response_text, re.DOTALL)
+        if json_match:
+            json_str = json_match.group(0)
+            try:
+                # Clean up common issues
+                json_str = json_str.strip()
+                # Remove trailing commas before closing braces/brackets
+                json_str = re.sub(r',\s*([}\]])', r'\1', json_str)
+                return json.loads(json_str)
+            except json.JSONDecodeError as e:
+                print(f"JSON decode error with pattern {pattern}: {e}")
+                print(f"Problematic JSON string: {json_str[:200]}...")
+                continue
+    
+    # Strategy 2: Try parsing the entire response
+    try:
+        return json.loads(response_text)
+    except json.JSONDecodeError as e:
+        print(f"Could not parse as JSON: {e}")
+        print(f"Full response text: {response_text}")
+        raise ValueError(f"Could not extract valid JSON from response: {str(e)}")
+
+
+def generate_video_task(video_id, title, bible_verse, video_style, length_seconds):
+    try:
+        prompt = f"Generate a short song title for: {bible_verse}"
+
+        if title is None:
+            res = model_generator(prompt)
+            parts = re.findall(r'"(.*?)"', res)
+            title = parts[1] if len(parts) >= 2 else parts[0]
+
+        script_prompt = f"""You are a professional scriptwriter for inspirational Bible-based videos.
+            Generate a video script based on this Bible verse: "{bible_verse}"
+            Video style: {video_style}
+            Duration: {length_seconds} seconds
+
+            You MUST return ONLY a raw JSON object with no markdown, no explanations, no extra text.
+
+            Follow this exact JSON format:
+            {{
+            "scenes": [
+                {{
+                "speaker_type": "presenter",
+                "text": "Scene dialogue here",
+                "duration_seconds": 5
+                }}
+            ]
+            }}
+
+            Rules:
+            1. Use 4-8 scenes depending on the duration
+            2. Each scene should be 3-5 seconds long
+            3. speaker_type must be one of: "presenter", "male", "female", "god", "angel"
+            4. 1-2 sentences per scene
+            5. Do NOT include any text before or after the JSON
+            6. Do NOT use markdown code blocks
+            7. Ensure proper JSON formatting (no trailing commas, proper quotes)
+
+            Example output:
+            {{"scenes":[{{"speaker_type":"presenter","text":"Welcome to our inspirational message.","duration_seconds":4}}]}}
+            """
+
+        script_raw = model_generator(script_prompt, max_tokens=500)
+        script = extract_json_from_response(script_raw)
+        scenes = script["scenes"]
+
+        voices = client.get_voices_list()
+        avatars = client.get_avatars_list()
+
+        for scene in scenes:
+            speaker_type = scene.get("speaker_type", "presenter")
+            scene["voice_id"] = select_voice_for_scene(speaker_type, voices)
+            scene["avatar_id"] = select_avatar_for_scene(speaker_type, avatars)
+            scene.setdefault("background_color", "#FCDCBE")
+
+        response = client.create_multi_scene_video(
+            title=title,
+            scenes=scenes
+        )
+
+        video_id_external = response["data"]["video_id"]
+
+        GeneratedVideo.objects.filter(id=video_id).update(
+            title=title,
+            status="processing",
+            video_id=video_id_external
+        )
+
+    except Exception as e:
+        logger.error(f"Video background error: {e}")
+        GeneratedVideo.objects.filter(id=video_id).update(status="failed")
 
 class GeneratedVideoCreateView(generics.CreateAPIView):
     serializer_class = GeneratedVideoSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        title = request.data.get('title', None)
+        title = request.data.get('title')
         bible_verse = request.data.get('bible_verse', '')
         video_style = request.data.get('video_style', 'inspirational')
         length = request.data.get('video_length', '3')
-        if length.isdigit():
-            length = int(length) * 60
-            length_seconds = min(length, 180)
-        try:
-            # Call external music generation utility
-            prompt = f"Generate a short song title for: {bible_verse}"
-            if title is None:
-                res = model_generator(prompt)
-                # Split by number followed by a dot and space
-                parts = re.findall(r'"(.*?)"', res)
-                if len(parts) >= 2:
-                    title = parts[1]
-                else:
-                    title = parts[0]
-            #------------------ here will be removed in favour of the heygen sdk-------------
-            # response = generate_video(verse=bible_verse, video_style=video_style)
-            # print(f"From view {response}")
-            # if response.get('code') != 200:
-            #     raise Exception(f"Video generation failed with code {response.get('code')}: {response.get('msg')}")
-            
-            # -------------- Here is the heygen  sdk use case ---------------------
-            # prompt = f"""You are a professional video scriptwriter. 
-            #     Create a {length_seconds}-second {video_style} video script based on the following topic: {verse}. 
-            #     Ensure the script is engaging, concise, and suitable for a short video format."""
-            # video_scripts = model_generator(prompt, max_tokens=500)
-            
-            script_prompt = """
-                You are a professional scriptwriter for inspirational Bible-based videos.
 
-                Write a multi-scene script for the topic: "{}"
-                Video style: {}
-                Duration: {} seconds.
+        length_seconds = min(int(length) * 60, 180) if str(length).isdigit() else 180
 
-                Use ONLY these speaker types:
-                - "presenter"
-                - "male"
-                - "female"
-                - "god"
-                - "angel"
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-                Return ONLY valid JSON with this structure:
+        video = serializer.save(
+            user=request.user,
+            title=title,
+            status="queued"
+        )
 
-                {{
-                "scenes": [
-                    {{
-                    "speaker_type": "presenter | male | female | god | angel",
-                    "text": "What this speaker says in the scene."
-                    }}
-                ]
-                }}
-
-                Rules:
-                - Use 4–8 scenes.
-                - 1–2 sentences per scene.
-                - Speaker type MUST be one of the allowed values.
-                - DO NOT include explanations or commentary — only JSON.
-            """.format(bible_verse, video_style, length_seconds)
-
-
-            script_raw = model_generator(script_prompt, max_tokens=500)
-            
-            try:
-                script = json.loads(script_raw.strip())
-                scenes = script["scenes"]
-            except Exception as e:
-                raise Exception(f"Generated script is not valid JSON: {e}")
-            
-            voices = client.get_voices_list()
-            avatars = client.get_avatars_list()
-            for scene in scenes:
-                speaker_type = scene.get("speaker_type", "presenter")
-
-                scene["voice_id"] = select_voice_for_scene(speaker_type, voices)
-                scene["avatar_id"] = select_avatar_for_scene(speaker_type, avatars)
-                
-                if "background_color" not in scene:
-                    scene["background_color"] = "#FCDCBE"
-
-            response = client.create_multi_scene_video(
-                title=title,
-                scenes=scenes)
-
-            video_id = response.get('data').get('video_id')
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            # Pass user and other fields into serializer.save()
-            serializer.save(
-                user=request.user,
-                title=title,
-                status='processing',
-                video_id=video_id
-            )
-
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-        except Exception as e:
-            logger.error(f"Error generating video: {e}")
-            return Response(
-                {'error': f'Failed to initiate video generation {e}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        return Response(
+            {
+                "message": "Video generation started",
+                "id": video.id,
+                "status": "queued"
+            },
+            status=status.HTTP_202_ACCEPTED
+        )
 
 
 class GeneratedVideosListView(generics.ListAPIView):
-    serializer_class = VideoSerializer
+    serializer_class = GeneratedVideoSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
@@ -542,7 +583,7 @@ class GeneratedVideosListView(generics.ListAPIView):
 
 
 class GeneratedVideoDetailView(generics.RetrieveAPIView):
-    serializer_class = VideoDetailSerializer
+    serializer_class = GeneratedVideoDetailSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):

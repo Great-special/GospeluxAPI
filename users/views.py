@@ -1,3 +1,4 @@
+from asgiref.sync import async_to_sync
 from rest_framework import status, generics, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -14,7 +15,7 @@ from .serializers import (
     ResendOTPSerializer, ForgotPasswordSerializer, ResetPasswordSerializer,
     UserProfileSerializer, ChangePasswordSerializer
 )
-from .utils import send_otp_email
+from .utils import send_otp_email, send_otp_email_task
 
 User = get_user_model()
 
@@ -160,7 +161,14 @@ def forgot_password(request):
             
             # Create new OTP
             otp = OTP.objects.create(user=user, otp_type='password_reset')
-            send_otp_email(user.email, otp.otp_code, 'password_reset')
+            # send_otp_email(user.email, otp.otp_code, 'password_reset')
+            # async_to_sync(send_otp_email_task(user.email, otp.otp_code, 'password_reset'))
+            async_to_sync(send_otp_email_task)(
+                user.email,
+                otp.otp_code,
+                'password_reset'
+            )
+
             
             return Response({'message': 'Password reset OTP sent to your email'}, status=status.HTTP_200_OK)
             
