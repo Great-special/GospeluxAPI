@@ -8,6 +8,8 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.views import APIView
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from django.db.models import Q, Count
 from django.db.models import Prefetch
@@ -255,16 +257,36 @@ class GeneratedSongsListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        generated_song = GeneratedSongs.objects.filter(user=self.request.user).first()
-        return GeneratedSongsData.objects.filter(generated_song=generated_song).order_by('-created_at')
+        generated_song = GeneratedSongs.objects.filter(user=self.request.user)
+        return GeneratedSongsData.objects.filter(generated_song__in=generated_song).order_by('-created_at')
 
-class GeneratedSongsDetailView(generics.RetrieveAPIView):
+class GeneratedSongsDetailView(APIView):
     serializer_class = GeneratedSongsDataSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-    def get_queryset(self):
-        generated_song = GeneratedSongs.objects.filter(user=self.request.user).first()
-        return GeneratedSongsData.objects.filter(generated_song=generated_song).order_by('-created_at')
+    def get(self,  request, *args, **kwargs):
+        """Returns the most recent GeneratedSongsData for the song."""
+        user = request.user
+        song_id = kwargs['pk']
+        
+        obj = (
+            GeneratedSongsData.objects
+            .filter(
+                generated_song__user=user,
+                generated_song__id=song_id
+            )
+            .order_by('-created_at')
+            .first()
+        )
+        
+    
+        if not obj:
+            raise NotFound("Generated song data not found")
+
+        serializer = self.serializer_class(obj)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    
 
 
 class GeneratedSongsCreateView(generics.CreateAPIView):
@@ -353,6 +375,7 @@ def update_generated_song_status(task_id, status, data_id=None, duration=None, p
 @permission_classes([permissions.AllowAny])
 def handle_callback(request):
     from django.core.files.base import ContentFile
+    from datetime import timedelta
     try:
         data = request.data
 
@@ -398,7 +421,6 @@ def handle_callback(request):
                         # Sanitize filename
                         safe_title = re.sub(r'[^a-zA-Z0-9_\- ]', "", title)
                         filename = f"suno_{task_id}_{safe_title}_{index}.mp3"
-
                         
                         logger.info(f"Audio saved: {filename}")
 
@@ -407,7 +429,7 @@ def handle_callback(request):
                             task_id=task_id,
                             status="completed",
                             data_id=data_id,
-                            duration=duration,
+                            duration=timedelta(seconds=duration),
                             audio_file_url=audio_url,
                             audio_file=ContentFile(resp.content, name=filename)
                         )
