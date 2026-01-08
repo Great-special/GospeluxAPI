@@ -571,7 +571,7 @@ def generate_video_task(video_id, title, bible_verse, video_style, length_second
             speaker_type = scene.get("speaker_type", "presenter")
             scene["voice_id"] = select_voice_for_scene(speaker_type, voices)
             scene["avatar_id"] = select_avatar_for_scene(speaker_type, avatars)
-            scene['background_video'] = "https://gospelux.com/static/backgrounds/nature_1.mp4"
+            
         client.api_callback_register()
         response = client.create_multi_scene_video(
             title=title,

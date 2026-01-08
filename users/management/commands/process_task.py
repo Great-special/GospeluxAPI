@@ -61,7 +61,7 @@ class Command(BaseCommand):
 
         if not videos:
             self.log("ℹ️ No queued videos found")
-            return
+            
 
         for video in videos:
             self.log(f"🎬 Processing video ID={video.id}")
