@@ -49,11 +49,9 @@ class Command(BaseCommand):
                     video.save()
                 
                 if status == "failed":
-                    video.status = status   
+                    video.status = status 
                     video.save()
-            else:
-                video.status = "failed"
-                video.save()
+            
                     
                 
     def handle(self, *args, **kwargs):

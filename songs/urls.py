@@ -26,6 +26,7 @@ urlpatterns = [
     path('generate-video/', views.GeneratedVideoCreateView.as_view(), name='generate_video'),
     path('generated-videos/list/', views.GeneratedVideosListView.as_view(), name='generated_videos'),
     path('generated-videos/<uuid:pk>/', views.GeneratedVideoDetailView.as_view(), name='generated_video_detail'),
+    path('generated-videos-callback/', views.handle_video_callback, name='generate_video_callback'),
     
     path('get-video-status/', views.get_video_status_view, name='get_video_status'),
 ]

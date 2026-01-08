@@ -22,6 +22,21 @@ class HeyGenVideoCreator:
             "Content-Type": "application/json"
         }
     
+    def api_callback_register(self):
+        url = "https://api.heygen.com/v1/webhook/endpoint.add"
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "X-Api-Key": self.api_key
+        }
+        payload = {
+            "url": "https://gospelux.com/generated-videos-callback",
+            "events": ["avatar_video.success", "avatar_video.fail"]
+        }
+
+        response = requests.post(url, json=payload, headers=headers)
+        print(response.json())
+    
     def create_video(
         self,
         video_inputs: List[Dict[str, Any]],
@@ -115,12 +130,15 @@ class HeyGenVideoCreator:
         video_inputs = [{
             "character": {
                 "type": "avatar",
-                "avatar_id": avatar_id
+                "avatar_id": avatar_id,
+                "avatar_style": "normal"
             },
             "voice": {
                 "type": "text",
                 "voice_id": voice_id,
-                "input_text": text
+                "input_text": text,
+                "speed": 0.9,
+                "text_type": "ssml"
             },
             "background": {
                 "type": "color",
@@ -151,12 +169,15 @@ class HeyGenVideoCreator:
             video_input = {
                 "character": {
                     "type": "avatar",
-                    "avatar_id": scene["avatar_id"]
+                    "avatar_id": scene["avatar_id"],
+                    "avatar_style": "normal"
                 },
                 "voice": {
                     "type": "text",
                     "voice_id": scene["voice_id"],
-                    "input_text": scene["text"]
+                    "input_text": scene["text"],
+                    "speed": 0.9,
+                    "text_type": "ssml"
                 }
             }
             
@@ -504,29 +525,29 @@ def select_voice_for_scene(speaker_type, voices):
     if speaker_type == "god":
         # deep authoritative male voice
         for v in voices:
-            if v.get("gender") == "male" and "deep" in v.get("name", "").lower():
+            if v.get("gender") == "male" and "calm" in v.get("name", "").lower():
                 return v["voice_id"]
 
     if speaker_type == "angel":
         # soft neutral/female voice
         for v in voices:
-            if v.get("gender") in ["female", "neutral"]:
+            if v.get("language") == "Multilingual" and v.get("gender") == "female" and "friendly" in v.get("name", "").lower() or "gently" in v.get("name", "").lower():
                 return v["voice_id"]
 
     if speaker_type == "male":
         for v in voices:
-            if v.get("gender") == "male":
+            if v.get("language") == "Multilingual" and v.get("gender") == "male":
                 return v["voice_id"]
 
     if speaker_type == "female":
         for v in voices:
-            if v.get("gender") == "female":
+            if v.get("language") == "Multilingual" and v.get("gender") == "female":
                 return v["voice_id"]
 
     if speaker_type == "presenter":
         # neutral default presenter voice
         for v in voices:
-            if v.get("gender") == "neutral":
+            if v.get("language") == "Multilingual" and v.get("gender") == "female" and "" in v.get("name", "").lower():
                 return v["voice_id"]
 
     # fallback
@@ -540,7 +561,7 @@ def select_avatar_for_scene(speaker_type, avatars):
     if speaker_type == "god":
         # strong male avatar
         for a in avatars:
-            if a.get("gender") == "male" and "serious" in a.get("name", "").lower():
+            if a.get("gender") == "male" and "serious" in a.get("avatar_name", "").lower():
                 return a["avatar_id"]
 
     if speaker_type == "angel":
@@ -556,12 +577,14 @@ def select_avatar_for_scene(speaker_type, avatars):
 
     if speaker_type == "female":
         for a in avatars:
-            if a.get("gender") == "female":
+            if a.get("gender").lower() == "female" and "office" in a.get("avatar_name", "").lower():
                 return a["avatar_id"]
 
     if speaker_type == "presenter":
-        # neutral/host avatar
-        return avatars[0]["avatar_id"]
+        for a in avatars:
+            if a.get("gender").lower() == "female" and "casual" in a.get("avatar_name", "").lower() or "office" in a.get("avatar_name", "").lower():
+                return a["avatar_id"]
+        
 
     return avatars[0]["avatar_id"]
 

@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from django.db.models import Q, Count
 from django.db.models import Prefetch
 from django.views.decorators.csrf import csrf_exempt
+from django.core.files.base import ContentFile
 from core.generation_utility import generate_song, model_generator, generate_video, get_video_status
 from core.heygen import HeyGenVideoCreator, select_voice_for_scene, select_avatar_for_scene
 from .models import  Song, Playlist, PlaylistSong, Favorite, GeneratedSongs, GeneratedSongsData, GeneratedVideo
@@ -27,6 +28,7 @@ from decouple import config
 
 logger = logging.getLogger(__name__)
 client = HeyGenVideoCreator(config("HeyGen_API_KEY"))
+
 
 # class ArtistListView(generics.ListAPIView):
 #     queryset = Artist.objects.filter(is_active=True).annotate(songs_count=Count('songs'))
@@ -253,12 +255,12 @@ class FavoriteDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Favorite.objects.filter(user=self.request.user)
 
 class GeneratedSongsListView(generics.ListAPIView):
-    serializer_class = GeneratedSongsDataSerializer
+    serializer_class = GeneratedSongsSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         generated_song = GeneratedSongs.objects.filter(user=self.request.user)
-        return GeneratedSongsData.objects.filter(generated_song__in=generated_song).order_by('-created_at')
+        return generated_song.order_by('-created_at')
 
 class GeneratedSongsDetailView(APIView):
     serializer_class = GeneratedSongsDataSerializer
@@ -495,6 +497,29 @@ def extract_json_from_response(response_text):
         raise ValueError(f"Could not extract valid JSON from response: {str(e)}")
 
 
+@csrf_exempt
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+def handle_video_callback(request):
+    try:
+        data = request.json()
+    
+        event_type = data.get("event_type")
+        video_data = data.get("event_data", {})
+        
+        if event_type == "video.completed":
+            video_url = video_data.get("video_url")
+            video_id = video_data.get("video_id")
+            print(f"✨ Video {video_id} is ready! URL: {video_url}")
+            response = requests.get(video_url, stream=True)
+            filename = f"video_{video_id}.mp4"
+            video = GeneratedVideo.objects.get(video_id=video_id)
+            video.video_file = ContentFile(response.iter_content(chunk_size=8192), filename)
+            video.save()
+
+    except Exception as e:
+        logger.error(f"Video callback error: {e}")
+
 def generate_video_task(video_id, title, bible_verse, video_style, length_seconds):
     try:
         prompt = f"Generate a short song title for: {bible_verse}"
@@ -546,8 +571,8 @@ def generate_video_task(video_id, title, bible_verse, video_style, length_second
             speaker_type = scene.get("speaker_type", "presenter")
             scene["voice_id"] = select_voice_for_scene(speaker_type, voices)
             scene["avatar_id"] = select_avatar_for_scene(speaker_type, avatars)
-            scene.setdefault("background_color", "#FCDCBE")
-
+            scene['background_video'] = "https://gospelux.com/static/backgrounds/nature_1.mp4"
+        client.api_callback_register()
         response = client.create_multi_scene_video(
             title=title,
             scenes=scenes
