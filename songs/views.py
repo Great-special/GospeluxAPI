@@ -16,7 +16,8 @@ from django.db.models import Prefetch
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.base import ContentFile
 from core.generation_utility import generate_song, model_generator, generate_video, get_video_status
-from core.heygen import HeyGenVideoCreator, select_voice_for_scene, select_avatar_for_scene
+from core.heygen import HeyGenVideoCreator, select_voice_for_scene, select_avatar_for_scene, select_male_voice, select_female_voice, select_male_avatar, select_female_avatar
+from fcm_notifications.models import Notification
 from .models import  Song, Playlist, PlaylistSong, Favorite, GeneratedSongs, GeneratedSongsData, GeneratedVideo
 from .serializers import (
     SongSerializer, SongDetailSerializer,
@@ -254,13 +255,30 @@ class FavoriteDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return Favorite.objects.filter(user=self.request.user)
 
+# class GeneratedSongsListView(generics.ListAPIView):
+#     serializer_class = GeneratedSongsSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+    
+#     def get_queryset(self):
+#         generated_song = GeneratedSongs.objects.filter(user=self.request.user)
+#         return generated_song.order_by('-created_at')
+
 class GeneratedSongsListView(generics.ListAPIView):
     serializer_class = GeneratedSongsSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        generated_song = GeneratedSongs.objects.filter(user=self.request.user)
-        return generated_song.order_by('-created_at')
+        # 1. Prepare the subquery for the data, ordering by newest first
+        data_qs = GeneratedSongsData.objects.order_by('-created_at')
+
+        # 2. Fetch songs and 'pre-load' the latest data in one efficient query
+        return GeneratedSongs.objects.filter(user=self.request.user).prefetch_related(
+            Prefetch(
+                'data', # Use the related_name defined in your GeneratedSongsData model
+                queryset=data_qs,
+                to_attr='prefetched_data' # This matches the getattr() in the serializer
+            )
+        ).order_by('-created_at')
 
 class GeneratedSongsDetailView(APIView):
     serializer_class = GeneratedSongsDataSerializer
@@ -303,38 +321,40 @@ class GeneratedSongsCreateView(generics.CreateAPIView):
         mood = request.data.get('mood', 'uplifting')
 
         try:
-            # Call external music generation utility
-            prompt = f"Generate a short song title for: {bible_verse}"
-            if title is None:
-                res = model_generator(prompt)
-                # Split by number followed by a dot and space
-                parts = re.findall(r'"(.*?)"', res)
-                if len(parts) >= 2:
-                    title = parts[1]
-                else:
-                    title = parts[0]
-            response = generate_song(title=title, bible_verse=bible_verse, genre=genre, mood=mood)
-            if response.get('code') != 200:
-                raise Exception(f"[SUNO] Music generation failed with code {response.get('code')}: {response.get('msg')}")
-          
-            task_id = response.get('data').get('taskId')
+            if not bible_verse:
+                return Response(
+                    {'error': 'bible_verse is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Create database record immediately with pending status
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            # Pass user and other fields into serializer.save()
-            serializer.save(
+            song = serializer.save(
                 user=request.user,
-                title=title,
-                status='processing',
-                task_id=task_id
+                title=title or "Generating...",
+                status='pending',
+                bible_verse=bible_verse,
+                genre=genre,
+                mood=mood
             )
 
+            # Return immediately - cron job will process this
             headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+            response_data = serializer.data
+            response_data['message'] = 'Song queued for generation. Check back in 5-10 minutes.'
+            response_data['status_url'] = f'/api/v1/songs/{song.id}/'
+            
+            return Response(
+                response_data,
+                status=status.HTTP_202_ACCEPTED,
+                headers=headers
+            )
 
         except Exception as e:
-            logger.error(f"Error generating song: {e}")
+            logger.error(f"Error creating song record: {e}")
             return Response(
-                {'error': f'Failed to initiate music generation {e}'},
+                {'error': 'Failed to queue song generation'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -365,7 +385,12 @@ def update_generated_song_status(task_id, status, data_id=None, duration=None, p
                     audio_file,
                     save=True
                 )
-
+        Notification.object.create(
+            title = "Song Generation Completed",
+            body = f"Your song from {generated_song.bible_verse}, is ready.",
+            notification_type = 'single',
+            target_users = generated_song.user,
+        )
         logger.info(f"Updated song {task_id} → status={status}")
 
     except GeneratedSongs.DoesNotExist:
@@ -516,67 +541,102 @@ def handle_video_callback(request):
             video = GeneratedVideo.objects.get(video_id=video_id)
             video.video_file = ContentFile(response.iter_content(chunk_size=8192), filename)
             video.save()
-
+            
+            Notification.object.create(
+                title = "Video Generation Completed",
+                body = f"Your video from {video.bible_verse}, is ready.",
+                notification_type = 'single',
+                target_users = video.user,
+            )
     except Exception as e:
         logger.error(f"Video callback error: {e}")
 
-def generate_video_task(video_id, title, bible_verse, video_style, length_seconds):
+def generate_video_task(video_id, title, bible_verse, video_style, length_seconds, multi_scene=True):
     try:
         prompt = f"Generate a short song title for: {bible_verse}"
+        
+        voices = client.get_voices_list()
+        avatars = client.get_avatars_list()
 
         if title is None:
             res = model_generator(prompt)
             parts = re.findall(r'"(.*?)"', res)
             title = parts[1] if len(parts) >= 2 else parts[0]
+        
+        if multi_scene:
+            script_prompt = f"""You are a professional scriptwriter for inspirational Bible-based videos.
+                Generate a video script based on this Bible verse: "{bible_verse}"
+                Video style: {video_style}
+                Duration: {length_seconds} seconds
 
-        script_prompt = f"""You are a professional scriptwriter for inspirational Bible-based videos.
-            Generate a video script based on this Bible verse: "{bible_verse}"
-            Video style: {video_style}
-            Duration: {length_seconds} seconds
+                You MUST return ONLY a raw JSON object with no markdown, no explanations, no extra text.
 
-            You MUST return ONLY a raw JSON object with no markdown, no explanations, no extra text.
-
-            Follow this exact JSON format:
-            {{
-            "scenes": [
+                Follow this exact JSON format:
                 {{
-                "speaker_type": "presenter",
-                "text": "Scene dialogue here",
-                "duration_seconds": 5
+                "scenes": [
+                    {{
+                    "speaker_type": "presenter",
+                    "text": "Scene dialogue here",
+                    "duration_seconds": 5
+                    }}
+                ]
                 }}
-            ]
-            }}
 
-            Rules:
-            1. Use 4-8 scenes depending on the duration
-            2. Each scene should be 3-5 seconds long
-            3. speaker_type must be one of: "presenter", "male", "female", "god", "angel"
-            4. 1-2 sentences per scene
-            5. Do NOT include any text before or after the JSON
-            6. Do NOT use markdown code blocks
-            7. Ensure proper JSON formatting (no trailing commas, proper quotes)
+                Rules:
+                1. Use 4-8 scenes depending on the duration
+                2. Each scene should be 3-5 seconds long
+                3. speaker_type must be one of: "presenter", "male", "female", "god", "angel"
+                4. 1-2 sentences per scene
+                5. Do NOT include any text before or after the JSON
+                6. Do NOT use markdown code blocks
+                7. Ensure proper JSON formatting (no trailing commas, proper quotes)
 
-            Example output:
-            {{"scenes":[{{"speaker_type":"presenter","text":"Welcome to our inspirational message.","duration_seconds":4}}]}}
+                Example output:
+                {{"scenes":[{{"speaker_type":"presenter","text":"Welcome to our inspirational message.","duration_seconds":4}}]}}
+                """
+
+            script_raw = model_generator(script_prompt, max_tokens=500)
+            script = extract_json_from_response(script_raw)
+            scenes = script["scenes"]
+
+            for scene in scenes:
+                speaker_type = scene.get("speaker_type", "presenter")
+                scene["voice_id"] = select_voice_for_scene(speaker_type, voices)
+                scene["avatar_id"] = select_avatar_for_scene(speaker_type, avatars)
+                
+            client.api_callback_register()
+            response = client.create_multi_scene_video(
+                title=title,
+                scenes=scenes
+            )
+        else:
+            script_prompt = f"""
+                Act as a world-class children's storyteller and youth mentor. 
+                Your goal is to transform the heart of the Bible verse "{bible_verse}" into a tiny, vivid story that a child can easily picture in their mind.
+
+                TONE & LANGUAGE:
+                - Use "Small Words for Big Ideas": Keep the English simple, warm, and full of wonder.
+                - Style: {video_style}.
+                - Target: Children under 18 (ensure it's relatable and safe).
+
+                STORYTELLING RULES:
+                1. SENSES: Use words that describe feelings, sights, or sounds (e.g., "a bright light," "a steady hand," "the quiet woods").
+                2. PACING: Write exactly 2-5 sentences. Ensure the rhythm is slow and melodic for a {length_seconds}-second video.
+                3. THE HOOK: Start by inviting the child into the scene (e.g., "Imagine...", "Have you ever felt...", "Deep inside...").
+
+                STRICT OUTPUT FORMAT:
+                - Return ONLY the raw narrated text. 
+                - NO labels like "Narration:", NO quotation marks, and NO introductory explanations.
+                - If the verse is complex, simplify the meaning into a life lesson a kid can use today.
             """
-
-        script_raw = model_generator(script_prompt, max_tokens=500)
-        script = extract_json_from_response(script_raw)
-        scenes = script["scenes"]
-
-        voices = client.get_voices_list()
-        avatars = client.get_avatars_list()
-
-        for scene in scenes:
-            speaker_type = scene.get("speaker_type", "presenter")
-            scene["voice_id"] = select_voice_for_scene(speaker_type, voices)
-            scene["avatar_id"] = select_avatar_for_scene(speaker_type, avatars)
-            
-        client.api_callback_register()
-        response = client.create_multi_scene_video(
-            title=title,
-            scenes=scenes
-        )
+            script_raw = model_generator(script_prompt, max_tokens=400)
+            client.api_callback_register()
+            response = client.create_simple_video(
+                title=title,
+                avatar_id=select_female_avatar(avatars),
+                voice_id=select_female_voice(voices),
+                text=script_raw
+            )
 
         video_id_external = response["data"]["video_id"]
 

@@ -44,7 +44,8 @@ class Command(BaseCommand):
                     filename = f"heygen_{video.video_id}_{safe_title}.mp4"
                     video_url = data.get("video_url")
                     response = requests.get(video_url, stream=True)
-                    video.video_file = ContentFile(response.iter_content(chunk_size=8192), filename)
+                    # We use response.raw to avoid loading the whole file into RAM
+                    video.video_file.save(filename, response.raw, save=False)
                     video.status = status
                     video.save()
                 
@@ -77,7 +78,8 @@ class Command(BaseCommand):
                     video.title,
                     video.bible_verse,
                     "inspirational",
-                    length_seconds
+                    length_seconds,
+                    multi_scene=False
                 )
 
                 self.log(f"✅ SUCCESS video ID={video.id}")

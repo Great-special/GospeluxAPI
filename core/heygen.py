@@ -1,4 +1,5 @@
 import requests
+import random
 import json
 import time
 from typing import Optional, Dict, List, Any
@@ -113,6 +114,7 @@ class HeyGenVideoCreator:
         avatar_id: str,
         voice_id: str,
         text: str,
+        title: Optional[str] = None,
         background_color: str = "#FFFFFF"
     ) -> Dict[str, Any]:
         """
@@ -146,7 +148,7 @@ class HeyGenVideoCreator:
             }
         }]
         
-        return self.create_video(video_inputs)
+        return self.create_video(video_inputs, title=title)
     
     def create_multi_scene_video(
         self,
@@ -518,75 +520,152 @@ class HeyGenVideoCreator:
         
         return video_url
 
+def select_male_voice(voices):
+    
+    def pick(matches):
+        return random.choice(matches)["voice_id"] if matches else None
+    
+    matches = [
+        v for v in voices
+        if v.get("gender") == "male"
+        and v.get("language") == "English"
+        and "calm" in v.get("name", "").lower()
+    ]
+    
+    return pick(matches)
+
+def select_female_voice(voices):
+    
+    def pick(matches):
+        return random.choice(matches)["voice_id"] if matches else None
+    
+    matches = [
+        v for v in voices
+        if v.get("gender") == "female" 
+        and v.get("language") == "English"
+        and "calm" in v.get("name", "").lower()
+    ]
+    
+    return pick(matches)
+
+def select_female_avatar(avatars):
+    def pick(matches):
+        return random.choice(matches)["avatar_id"] if matches else None
+    
+    matches = [
+        a for a in avatars
+        if a.get("gender") in ["female", "neutral"]
+    ]
+    return pick(matches)
+
+def select_male_avatar(avatars):
+    def pick(matches):
+        return random.choice(matches)["avatar_id"] if matches else None
+    
+    matches = [
+        a for a in avatars
+        if a.get("gender") in ["male", "neutral"]
+    ]
+    return pick(matches)
+
+
 
 def select_voice_for_scene(speaker_type, voices):
     speaker_type = speaker_type.lower()
 
+    def pick(matches):
+        return random.choice(matches)["voice_id"] if matches else None
+
     if speaker_type == "god":
-        # deep authoritative male voice
-        for v in voices:
-            if v.get("gender") == "male" and "calm" in v.get("name", "").lower():
-                return v["voice_id"]
+        matches = [
+            v for v in voices
+            if v.get("gender") == "male"
+            and "calm" in v.get("name", "").lower()
+        ]
+        return pick(matches)
 
     if speaker_type == "angel":
-        # soft neutral/female voice
-        for v in voices:
-            if v.get("language") == "Multilingual" and v.get("gender") == "female" and "friendly" in v.get("name", "").lower() or "gently" in v.get("name", "").lower():
-                return v["voice_id"]
+        matches = [
+            v for v in voices
+            if v.get("language") == "English"
+            and v.get("gender") == "female"
+            and any(k in v.get("name", "").lower() for k in ["friendly", "gentle", "gently"])
+        ]
+        return pick(matches)
 
     if speaker_type == "male":
-        for v in voices:
-            if v.get("language") == "Multilingual" and v.get("gender") == "male":
-                return v["voice_id"]
+        matches = [
+            v for v in voices
+            if v.get("language") == "English"
+            and v.get("gender") == "male"
+        ]
+        return pick(matches)
 
     if speaker_type == "female":
-        for v in voices:
-            if v.get("language") == "Multilingual" and v.get("gender") == "female":
-                return v["voice_id"]
+        matches = [
+            v for v in voices
+            if v.get("language") == "English"
+            and v.get("gender") == "female"
+        ]
+        return pick(matches)
 
     if speaker_type == "presenter":
-        # neutral default presenter voice
-        for v in voices:
-            if v.get("language") == "Multilingual" and v.get("gender") == "female" and "" in v.get("name", "").lower():
-                return v["voice_id"]
+        matches = [
+            v for v in voices
+            if v.get("language") == "Multilingual"
+            and v.get("gender") == "female"
+        ]
+        return pick(matches)
 
-    # fallback
-    return voices[0]["voice_id"]
-
+    return None
 
 
 def select_avatar_for_scene(speaker_type, avatars):
     speaker_type = speaker_type.lower()
 
+    def pick(matches):
+        return random.choice(matches)["avatar_id"] if matches else None
+
     if speaker_type == "god":
-        # strong male avatar
-        for a in avatars:
-            if a.get("gender") == "male" and "serious" in a.get("avatar_name", "").lower():
-                return a["avatar_id"]
+        matches = [
+            a for a in avatars
+            if a.get("gender") == "male"
+            and any(k in a.get("avatar_name", "").lower() for k in ["serious", "casual"])
+        ]
+        return pick(matches)
 
     if speaker_type == "angel":
-        # soft peaceful avatar
-        for a in avatars:
-            if a.get("gender") in ["female", "neutral"]:
-                return a["avatar_id"]
+        matches = [
+            a for a in avatars
+            if a.get("gender") in ["female", "neutral"]
+        ]
+        return pick(matches)
 
     if speaker_type == "male":
-        for a in avatars:
-            if a.get("gender") == "male":
-                return a["avatar_id"]
+        matches = [
+            a for a in avatars
+            if a.get("gender") == "male"
+        ]
+        return pick(matches)
 
     if speaker_type == "female":
-        for a in avatars:
-            if a.get("gender").lower() == "female" and "office" in a.get("avatar_name", "").lower():
-                return a["avatar_id"]
+        matches = [
+            a for a in avatars
+            if a.get("gender") == "female"
+            and "office" in a.get("avatar_name", "").lower()
+        ]
+        return pick(matches)
 
     if speaker_type == "presenter":
-        for a in avatars:
-            if a.get("gender").lower() == "female" and "casual" in a.get("avatar_name", "").lower() or "office" in a.get("avatar_name", "").lower():
-                return a["avatar_id"]
-        
+        matches = [
+            a for a in avatars
+            if a.get("gender") == "female"
+            and any(k in a.get("avatar_name", "").lower() for k in ["casual", "office"])
+        ]
+        return pick(matches)
 
-    return avatars[0]["avatar_id"]
+    return None
+
 
 
 

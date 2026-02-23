@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'songs.apps.SongsConfig',
     'users.apps.UsersConfig',
+    'fcm_notifications.apps.FcmNotificationsConfig',
     
     'drf_spectacular',
     
@@ -211,6 +212,15 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '2/minute',  # For unauthenticated users (via IP)
+        'user': '5/minute'  # For authenticated users (via User ID)
+    }
 }
 
 
@@ -371,3 +381,11 @@ AUTHENTICATION_BACKENDS = (
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+
+
+# FIREBASE CLOUD MESSAGING (FCM) SETTINGS
+
+# Path to your Firebase service account JSON file
+# Download from Firebase Console > Project Settings > Service Accounts
+FCM_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'firebase-credentials.json')

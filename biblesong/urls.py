@@ -33,6 +33,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),  # Core app for home page and other static pages
     path('', include('users.web_urls')),  # Users app for web registration and login
+    path('api/fcm/', include("fcm_notifications.urls")),
     path('accounts/', include('allauth.urls')),  # Django Allauth for account management 
     path('api/v1/bible/', include('bible.urls')),  # Bible app for Bible-related APIs
     path('api/v1/songs/', include('songs.urls')),  # Songs app for song-related APIs

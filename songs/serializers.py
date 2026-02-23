@@ -72,11 +72,39 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 class GeneratedSongsSerializer(serializers.ModelSerializer):
     user_email = serializers.EmailField(source='user.email', read_only=True)
+    # New fields to handle readiness
+    is_ready = serializers.SerializerMethodField()
+    song_data = serializers.SerializerMethodField()
 
     class Meta:
         model = GeneratedSongs
-        fields = ["id", 'task_id', 'status', "user", "bible_verse", "title", "genre", "created_at", "user_email"]
+        fields = [
+            "id", "task_id", "status", "user", "user_email", 
+            "bible_verse", "title", "genre", "created_at", 
+            "is_ready", "song_data"
+        ]
         read_only_fields = ['created_at', 'user', 'title', 'task_id', 'status']
+
+    def get_is_ready(self, obj):
+        # We check if the prefetched data list has items
+        data_list = getattr(obj, 'prefetched_data', None)
+        return bool(data_list and len(data_list) > 0)
+
+    def get_song_data(self, obj):
+        # Get the first (most recent) data object from the prefetch
+        data_list = getattr(obj, 'prefetched_data', None)
+        if data_list:
+            # We use your existing detail serializer here
+            return GeneratedSongsDataSerializer(data_list[0]).data
+        return None
+
+# class GeneratedSongsSerializer(serializers.ModelSerializer):
+#     user_email = serializers.EmailField(source='user.email', read_only=True)
+
+#     class Meta:
+#         model = GeneratedSongs
+#         fields = ["id", 'task_id', 'status', "user", "bible_verse", "title", "genre", "created_at", "user_email"]
+#         read_only_fields = ['created_at', 'user', 'title', 'task_id', 'status']
 
 
 class GeneratedSongsDataSerializer(serializers.ModelSerializer):
